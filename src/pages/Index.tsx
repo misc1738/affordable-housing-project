@@ -6,6 +6,10 @@ import Navbar from "@/components/Navbar";
 import PropertyFilters from "@/components/PropertyFilters";
 import ApplicationTracker from "@/components/ApplicationTracker";
 import HousingResources from "@/components/HousingResources";
+import MortgageCalculator from "@/components/MortgageCalculator";
+import EligibilityChecker from "@/components/EligibilityChecker";
+import PropertyMap from "@/components/PropertyMap";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Sample properties data with Kenyan context
 const properties = [
@@ -65,6 +69,16 @@ const properties = [
   },
 ];
 
+// Property locations for map
+const propertyLocations = [
+  { id: 1, title: "Modern Apartment in Kilimani", lat: -1.2921, lng: 36.8219, price: 75000 },
+  { id: 2, title: "Cozy Studio in Westlands", lat: -1.2673, lng: 36.8061, price: 45000 },
+  { id: 3, title: "Family Home in Karen", lat: -1.3184, lng: 36.7111, price: 120000 },
+  { id: 4, title: "Spacious Townhouse in Lavington", lat: -1.2773, lng: 36.7752, price: 95000 },
+  { id: 5, title: "Elegant Apartment in Riverside", lat: -1.2740, lng: 36.8058, price: 85000 },
+  { id: 6, title: "Budget Studio in Ngara", lat: -1.2762, lng: 36.8315, price: 25000 },
+];
+
 // Sample application steps
 const applicationSteps = [
   {
@@ -109,7 +123,7 @@ const Index = () => {
           <PropertyFilters />
         </div>
         
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-housing-800 mb-4">
             Featured Properties in Nairobi
           </h2>
@@ -117,27 +131,49 @@ const Index = () => {
             Discover our handpicked selection of affordable properties in Kenya's capital
           </p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {properties.map((property) => (
-            <PropertyCard key={property.id} {...property} />
-          ))}
-        </div>
+
+        <Tabs defaultValue="grid" className="mb-8">
+          <div className="flex justify-center">
+            <TabsList>
+              <TabsTrigger value="grid">Grid View</TabsTrigger>
+              <TabsTrigger value="map">Map View</TabsTrigger>
+            </TabsList>
+          </div>
+          <TabsContent value="grid" className="mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {properties.map((property) => (
+                <PropertyCard key={property.id} {...property} />
+              ))}
+            </div>
+          </TabsContent>
+          <TabsContent value="map" className="mt-6">
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-housing-200">
+              <PropertyMap
+                locations={propertyLocations}
+                height="500px"
+                zoom={11}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </section>
 
       <section className="container mx-auto px-4 py-16 bg-gradient-to-b from-transparent to-housing-100/50">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-housing-800 mb-4">
-            Plan Your Budget
+            Plan Your Housing Finances
           </h2>
           <p className="text-housing-600 max-w-2xl mx-auto">
-            Use our calculator to determine your ideal rental budget in Kenya
+            Use our tools to plan your budget and check your eligibility for Kenyan housing programs
           </p>
         </div>
         
-        <AffordabilityCalculator />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <MortgageCalculator />
+          <EligibilityChecker />
+        </div>
       </section>
-      
+
       <section className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-housing-800 mb-4">

@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/Navbar";
+import PropertyMap from "@/components/PropertyMap";
+import VerificationBadge from "@/components/VerificationBadge";
 
 const PropertyDetails = () => {
   const { id } = useParams();
@@ -32,6 +34,7 @@ const PropertyDetails = () => {
     size: 150, // square meters
     type: "Apartment",
     available: true,
+    verificationStatus: "verified" as "verified" | "unverified" | "pending",
     description: "This stunning 3-bedroom apartment in the heart of Kilimani offers modern living with excellent amenities. Featuring a spacious living area, modern kitchen, and balcony with city views. The apartment is located in a secure compound with 24/7 security, swimming pool, and gym access.",
     amenities: [
       "Swimming Pool",
@@ -81,9 +84,12 @@ const PropertyDetails = () => {
         {/* Property Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-housing-800">
-              {property.title}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl md:text-4xl font-display font-bold text-housing-800">
+                {property.title}
+              </h1>
+              <VerificationBadge type={property.verificationStatus} />
+            </div>
             <div className="mt-2 md:mt-0 flex items-center gap-2">
               <Button variant="outline" size="sm" className="text-housing-600">
                 <Share2 className="mr-2 h-4 w-4" />
@@ -205,8 +211,18 @@ const PropertyDetails = () => {
               
               <TabsContent value="location" className="bg-white rounded-lg p-6 shadow-sm border border-housing-200">
                 <h3 className="text-xl font-semibold text-housing-800 mb-4">Location</h3>
-                <div className="mb-6 h-[300px] bg-housing-100 rounded-lg flex items-center justify-center">
-                  <p className="text-housing-600">Map would be displayed here</p>
+                <div className="mb-6 h-[300px] rounded-lg">
+                  <PropertyMap
+                    locations={[{
+                      id: property.id,
+                      title: property.title,
+                      lat: property.location.lat,
+                      lng: property.location.lng,
+                      price: property.price
+                    }]}
+                    center={[property.location.lng, property.location.lat]}
+                    zoom={15}
+                  />
                 </div>
                 
                 <h4 className="font-medium text-housing-800 mb-3">Nearby Places</h4>
