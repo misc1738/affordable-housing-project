@@ -7,34 +7,61 @@ import PropertyFilters from "@/components/PropertyFilters";
 import ApplicationTracker from "@/components/ApplicationTracker";
 import HousingResources from "@/components/HousingResources";
 
-// Sample properties data
+// Sample properties data with Kenyan context
 const properties = [
   {
     id: 1,
-    title: "Modern Apartment",
-    address: "123 Main St, Brooklyn, NY",
-    price: 1500,
+    title: "Modern Apartment in Kilimani",
+    address: "Kirichwa Road, Kilimani, Nairobi",
+    price: 75000,
     bedrooms: 2,
     type: "Apartment",
-    imageUrl: "https://images.unsplash.com/photo-1721322800607-8c38375eef04",
+    imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2",
   },
   {
     id: 2,
-    title: "Cozy Studio",
-    address: "456 Park Ave, Manhattan, NY",
-    price: 1200,
+    title: "Cozy Studio in Westlands",
+    address: "Waiyaki Way, Westlands, Nairobi",
+    price: 45000,
     bedrooms: 1,
     type: "Studio",
     imageUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
   },
   {
     id: 3,
-    title: "Family Home",
-    address: "789 Oak St, Queens, NY",
-    price: 2200,
+    title: "Family Home in Karen",
+    address: "Karen Road, Karen, Nairobi",
+    price: 120000,
     bedrooms: 3,
     type: "House",
     imageUrl: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
+  },
+  {
+    id: 4,
+    title: "Spacious Townhouse in Lavington",
+    address: "James Gichuru Road, Lavington, Nairobi",
+    price: 95000,
+    bedrooms: 3,
+    type: "Townhouse",
+    imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750",
+  },
+  {
+    id: 5,
+    title: "Elegant Apartment in Riverside",
+    address: "Riverside Drive, Nairobi",
+    price: 85000,
+    bedrooms: 2,
+    type: "Apartment",
+    imageUrl: "https://images.unsplash.com/photo-1493809842364-78817add7ffb",
+  },
+  {
+    id: 6,
+    title: "Budget Studio in Ngara",
+    address: "Ngara Road, Ngara, Nairobi",
+    price: 25000,
+    bedrooms: 1,
+    type: "Studio",
+    imageUrl: "https://images.unsplash.com/photo-1487700160041-babef9c3cb55",
   },
 ];
 
@@ -84,10 +111,10 @@ const Index = () => {
         
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-bold text-housing-800 mb-4">
-            Featured Properties
+            Featured Properties in Nairobi
           </h2>
           <p className="text-housing-600 max-w-2xl mx-auto">
-            Discover our handpicked selection of affordable properties in your area
+            Discover our handpicked selection of affordable properties in Kenya's capital
           </p>
         </div>
         
@@ -104,7 +131,7 @@ const Index = () => {
             Plan Your Budget
           </h2>
           <p className="text-housing-600 max-w-2xl mx-auto">
-            Use our calculator to determine your ideal rental budget
+            Use our calculator to determine your ideal rental budget in Kenya
           </p>
         </div>
         
@@ -124,7 +151,7 @@ const Index = () => {
         <div className="max-w-3xl mx-auto">
           <ApplicationTracker 
             applicationId="APP-12345"
-            property="Modern Apartment - 123 Main St, Brooklyn, NY"
+            property="Modern Apartment - Kirichwa Road, Kilimani, Nairobi"
             steps={applicationSteps}
           />
         </div>
@@ -140,7 +167,7 @@ const Index = () => {
             <div>
               <h3 className="font-display text-xl font-bold mb-4">Affordable Abode</h3>
               <p className="text-housing-300 text-sm">
-                Connecting people with affordable housing options tailored to their needs and budget.
+                Connecting Kenyans with affordable housing options tailored to their needs and budget.
               </p>
             </div>
             
@@ -167,16 +194,16 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-3 text-white/90">Contact Us</h4>
               <ul className="space-y-2 text-sm text-housing-300">
-                <li>support@affordableabode.com</li>
-                <li>(555) 123-4567</li>
-                <li>Mon-Fri: 9am - 5pm EST</li>
+                <li>support@affordableabode.co.ke</li>
+                <li>+254 712 345 678</li>
+                <li>Mon-Fri: 9am - 5pm EAT</li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-housing-700 pt-8 text-center">
             <p className="text-housing-400 text-sm">
-              © {new Date().getFullYear()} Affordable Abode Connect. All rights reserved.
+              © {new Date().getFullYear()} Affordable Abode Kenya. All rights reserved.
             </p>
           </div>
         </div>

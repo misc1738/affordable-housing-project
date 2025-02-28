@@ -8,8 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 interface PropertyCardProps {
+  id: number;
   title: string;
   address: string;
   price: number;
@@ -19,6 +21,7 @@ interface PropertyCardProps {
 }
 
 const PropertyCard = ({
+  id,
   title,
   address,
   price,
@@ -27,44 +30,46 @@ const PropertyCard = ({
   imageUrl,
 }: PropertyCardProps) => {
   return (
-    <Card className="overflow-hidden transition-transform hover:scale-[1.02] bg-white/80 backdrop-blur-sm border-housing-200">
-      <div className="relative aspect-[16/9] overflow-hidden">
-        <img
-          src={imageUrl}
-          alt={title}
-          className="object-cover w-full h-full transition-transform hover:scale-110 duration-700"
-        />
-        <Badge className="absolute top-4 left-4 bg-white/90 text-housing-800 hover:bg-white">
-          {type}
-        </Badge>
-      </div>
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-xl font-display text-housing-800">
-            {title}
-          </CardTitle>
-          <span className="text-lg font-semibold text-housing-700">
-            ${price.toLocaleString()}/mo
-          </span>
+    <Link to={`/property/${id}`}>
+      <Card className="overflow-hidden transition-transform hover:scale-[1.02] bg-white/80 backdrop-blur-sm border-housing-200">
+        <div className="relative aspect-[16/9] overflow-hidden">
+          <img
+            src={imageUrl}
+            alt={title}
+            className="object-cover w-full h-full transition-transform hover:scale-110 duration-700"
+          />
+          <Badge className="absolute top-4 left-4 bg-white/90 text-housing-800 hover:bg-white">
+            {type}
+          </Badge>
         </div>
-        <CardDescription className="flex items-center gap-1">
-          <MapPin className="w-4 h-4 text-housing-400" />
-          {address}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-4 text-housing-600">
-          <div className="flex items-center gap-1">
-            <BedDouble className="w-4 h-4" />
-            <span>{bedrooms} Beds</span>
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-xl font-display text-housing-800">
+              {title}
+            </CardTitle>
+            <span className="text-lg font-semibold text-housing-700">
+              KSh {price.toLocaleString()}/mo
+            </span>
           </div>
-          <div className="flex items-center gap-1">
-            <Home className="w-4 h-4" />
-            <span>{type}</span>
+          <CardDescription className="flex items-center gap-1">
+            <MapPin className="w-4 h-4 text-housing-400" />
+            {address}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 text-housing-600">
+            <div className="flex items-center gap-1">
+              <BedDouble className="w-4 h-4" />
+              <span>{bedrooms} Beds</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Home className="w-4 h-4" />
+              <span>{type}</span>
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 };
 
