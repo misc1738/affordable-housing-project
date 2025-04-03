@@ -10,6 +10,7 @@ import SignUp from "./pages/SignUp";
 import PropertyDetails from "./pages/PropertyDetails";
 import UserDashboard from "./pages/UserDashboard";
 import Resources from "./pages/Resources";
+import Apply from "./pages/Apply";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/property/:id" element={<PropertyDetails />} />
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/resources" element={<Resources />} />
+          <Route path="/apply" element={<Apply />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
