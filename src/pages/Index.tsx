@@ -1,4 +1,3 @@
-
 import SearchHero from "@/components/SearchHero";
 import AffordabilityCalculator from "@/components/AffordabilityCalculator";
 import PropertyCard from "@/components/PropertyCard";
@@ -10,6 +9,8 @@ import MortgageCalculator from "@/components/MortgageCalculator";
 import EligibilityChecker from "@/components/EligibilityChecker";
 import PropertyMap from "@/components/PropertyMap";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 // Sample properties data with Kenyan context
 const properties = [

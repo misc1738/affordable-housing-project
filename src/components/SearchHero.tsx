@@ -2,8 +2,23 @@
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const SearchHero = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  const handleSearch = () => {
+    navigate(`/properties${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ""}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="relative min-h-[80vh] flex items-center justify-center bg-gradient-to-b from-housing-50 to-housing-100">
       <div className="absolute inset-0 bg-housing-800/5 backdrop-blur-sm" />
@@ -24,8 +39,14 @@ const SearchHero = () => {
             type="text"
             placeholder="Enter location (e.g., Kilimani, Westlands, Karen)"
             className="w-full sm:w-2/3 h-12 bg-white/80 backdrop-blur-sm border-housing-200"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
-          <Button className="w-full sm:w-auto h-12 px-8 bg-housing-800 hover:bg-housing-900 text-white transition-all">
+          <Button 
+            className="w-full sm:w-auto h-12 px-8 bg-housing-800 hover:bg-housing-900 text-white transition-all"
+            onClick={handleSearch}
+          >
             <Search className="w-4 h-4 mr-2" />
             Search
           </Button>

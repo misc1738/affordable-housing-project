@@ -11,6 +11,7 @@ import PropertyDetails from "./pages/PropertyDetails";
 import UserDashboard from "./pages/UserDashboard";
 import Resources from "./pages/Resources";
 import Apply from "./pages/Apply";
+import Properties from "./pages/Properties";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/resources" element={<Resources />} />
           <Route path="/apply" element={<Apply />} />
+          <Route path="/properties" element={<Properties />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
