@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { Check, ChevronLeft, ChevronRight, Home, DollarSign, MapPin, Users, Building, Layout, Sparkles } from "lucide-react";
@@ -10,7 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PropertyCard } from "@/components/PropertyCard";
+import PropertyCard from "@/components/PropertyCard";
 import { useNavigate } from "react-router-dom";
 
 interface Question {
@@ -145,7 +144,6 @@ const PreferenceQuiz = () => {
 
   const handleNextStep = () => {
     if (currentStep < questions.length - 1) {
-      // Check if the current question is answered
       const currentQuestion = questions[currentStep];
       if (!answers[currentQuestion.id] && currentQuestion.type !== "multiple") {
         toast({
@@ -169,7 +167,6 @@ const PreferenceQuiz = () => {
       setCurrentStep(currentStep + 1);
       window.scrollTo(0, 0);
     } else {
-      // Submit answers and show results
       generateResults();
       setShowResults(true);
     }
@@ -196,10 +193,6 @@ const PreferenceQuiz = () => {
   };
 
   const generateResults = () => {
-    // This would typically call an API with the answers
-    // For demo purposes, we're generating fake recommendations based on answers
-    
-    // Sample property data - in a real app, this would be filtered based on user preferences
     const sampleProperties: PropertyRecommendation[] = [
       {
         id: 1,
@@ -242,10 +235,8 @@ const PreferenceQuiz = () => {
       }
     ];
     
-    // Filter based on answers
     let filteredProperties = [...sampleProperties];
     
-    // Filter by location if specified
     if (answers.location && answers.location.length > 0) {
       filteredProperties = filteredProperties.filter(property => {
         const propertyLocation = property.location.split(",")[0].trim().toLowerCase();
@@ -255,21 +246,18 @@ const PreferenceQuiz = () => {
       });
     }
     
-    // Filter by budget if specified
     if (answers.budget) {
       filteredProperties = filteredProperties.filter(property => 
         property.price <= answers.budget
       );
     }
     
-    // Filter by property type if specified
     if (answers["property-type"] && answers["property-type"] !== "any") {
       filteredProperties = filteredProperties.filter(property => 
         property.type.toLowerCase() === answers["property-type"].toLowerCase()
       );
     }
     
-    // Filter by number of bedrooms if specified
     if (answers.bedrooms) {
       const bedroomFilter = answers.bedrooms === "4plus" ? 4 : parseInt(answers.bedrooms);
       filteredProperties = filteredProperties.filter(property => 
@@ -279,7 +267,6 @@ const PreferenceQuiz = () => {
       );
     }
     
-    // If no properties match exactly, return all with adjusted match scores
     if (filteredProperties.length === 0) {
       filteredProperties = sampleProperties.map(property => ({
         ...property,
@@ -287,7 +274,6 @@ const PreferenceQuiz = () => {
       }));
     }
     
-    // Sort by match score
     filteredProperties.sort((a, b) => b.matchScore - a.matchScore);
     
     setResults(filteredProperties);
@@ -515,15 +501,13 @@ const PreferenceQuiz = () => {
                         {property.matchScore}% Match
                       </div>
                       <PropertyCard
-                        id={property.id.toString()}
+                        id={property.id}
                         title={property.title}
-                        location={property.location}
+                        address={property.location}
                         price={property.price}
                         bedrooms={property.bedrooms}
-                        bathrooms={property.bathrooms}
-                        size={property.area}
+                        type={property.type}
                         imageUrl={property.image}
-                        onClick={() => navigate(`/property/${property.id}`)}
                       />
                     </div>
                   ))}
