@@ -13,6 +13,13 @@ import Resources from "./pages/Resources";
 import Apply from "./pages/Apply";
 import Properties from "./pages/Properties";
 import NotFound from "./pages/NotFound";
+import Applications from "./pages/Applications";
+import DocumentChecklist from "./pages/DocumentChecklist";
+import Community from "./pages/Community";
+import HousingTimeline from "./pages/HousingTimeline";
+import Neighborhood from "./pages/Neighborhood";
+import News from "./pages/News";
+import PreferenceQuiz from "./pages/PreferenceQuiz";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +38,13 @@ const App = () => (
           <Route path="/resources" element={<Resources />} />
           <Route path="/apply" element={<Apply />} />
           <Route path="/properties" element={<Properties />} />
+          <Route path="/applications" element={<Applications />} />
+          <Route path="/documents" element={<DocumentChecklist />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/timeline" element={<HousingTimeline />} />
+          <Route path="/neighborhoods" element={<Neighborhood />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/quiz" element={<PreferenceQuiz />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
