@@ -1,9 +1,9 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
+import { Map, Building, Navigation } from 'lucide-react';
 
 interface PropertyLocation {
   id: number;
@@ -29,103 +29,93 @@ const PropertyMap = ({
   interactive = true
 }: PropertyMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string>("");
-  const [tokenInput, setTokenInput] = useState<string>("");
-  const [showTokenInput, setShowTokenInput] = useState(true);
+  const mapRef = useRef<any>(null);
+  const [apiLoaded, setApiLoaded] = useState(false);
+  const MAPQUEST_API_KEY = "VGAXuFI8Sfc8Mikujxr9Z0paCJ5GEgpe";
 
   useEffect(() => {
-    // Check if token is in localStorage
-    const savedToken = localStorage.getItem('mapbox_token');
-    if (savedToken) {
-      setMapboxToken(savedToken);
-      setShowTokenInput(false);
+    // Load MapQuest API script
+    if (!document.getElementById('mapquest-api')) {
+      const script = document.createElement('script');
+      script.id = 'mapquest-api';
+      script.src = `https://api.mqcdn.com/sdk/mapquest-js/v1.3.2/mapquest.js`;
+      script.async = true;
+      script.onload = () => setApiLoaded(true);
+      
+      // Add MapQuest CSS
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://api.mqcdn.com/sdk/mapquest-js/v1.3.2/mapquest.css';
+      
+      document.head.appendChild(link);
+      document.body.appendChild(script);
+    } else {
+      setApiLoaded(true);
     }
   }, []);
 
-  const initializeMap = () => {
-    if (!mapContainer.current || !mapboxToken) return;
-    
-    // Initialize map
-    mapboxgl.accessToken = mapboxToken;
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v11',
-      center: center,
-      zoom: zoom,
-      interactive: interactive
-    });
-
-    // Add navigation controls if interactive
-    if (interactive) {
-      map.current.addControl(
-        new mapboxgl.NavigationControl(),
-        'top-right'
-      );
-    }
-
-    // Add markers for property locations
-    map.current.on('load', () => {
-      locations.forEach(location => {
-        const popup = new mapboxgl.Popup({ offset: 25 })
-          .setHTML(`
+  useEffect(() => {
+    if (apiLoaded && mapContainer.current && window.L) {
+      try {
+        // Initialize map
+        window.L.mapquest.key = MAPQUEST_API_KEY;
+        
+        if (mapRef.current) {
+          mapRef.current.remove();
+        }
+        
+        mapRef.current = window.L.mapquest.map(mapContainer.current, {
+          center: [center[1], center[0]], // MapQuest uses [lat, lng] order
+          layers: window.L.mapquest.tileLayer('map'),
+          zoom: zoom,
+          zoomControl: interactive
+        });
+        
+        // Add markers for property locations
+        locations.forEach(location => {
+          const marker = window.L.marker([location.lat, location.lng], {
+            icon: window.L.mapquest.icons.marker(),
+            draggable: false
+          });
+          
+          marker.bindPopup(`
             <strong>${location.title}</strong>
             <p>KSh ${location.price.toLocaleString()}</p>
-          `);
-          
-        new mapboxgl.Marker()
-          .setLngLat([location.lng, location.lat])
-          .setPopup(popup)
-          .addTo(map.current!);
-      });
-    });
-
+          `).addTo(mapRef.current);
+        });
+        
+        // Add navigation controls if interactive
+        if (interactive) {
+          window.L.control.zoom({
+            position: 'topright'
+          }).addTo(mapRef.current);
+        }
+      } catch (error) {
+        console.error('Error initializing MapQuest map:', error);
+      }
+    }
+    
     return () => {
-      map.current?.remove();
+      if (mapRef.current) {
+        mapRef.current.remove();
+      }
     };
-  };
-
-  const handleTokenSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (tokenInput) {
-      localStorage.setItem('mapbox_token', tokenInput);
-      setMapboxToken(tokenInput);
-      setShowTokenInput(false);
-    }
-  };
-
-  useEffect(() => {
-    if (mapboxToken) {
-      initializeMap();
-    }
-  }, [mapboxToken, locations]);
+  }, [apiLoaded, locations, center, zoom, interactive]);
 
   return (
     <div>
-      {showTokenInput ? (
-        <div className="border border-housing-200 rounded-lg p-4 mb-4">
-          <p className="text-sm text-housing-600 mb-2">
-            To display property locations on a map, please enter your Mapbox access token. 
-            You can get a free token from <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-housing-800 underline">Mapbox</a>.
-          </p>
-          <form onSubmit={handleTokenSubmit} className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="Enter your Mapbox access token"
-              value={tokenInput}
-              onChange={(e) => setTokenInput(e.target.value)}
-              className="flex-grow"
-            />
-            <Button type="submit">Apply</Button>
-          </form>
+      <div
+        ref={mapContainer}
+        style={{ height, width: '100%', borderRadius: '0.5rem' }}
+        className="bg-housing-100"
+      />
+      {!apiLoaded && (
+        <div className="flex items-center justify-center p-4 h-40">
+          <div className="flex flex-col items-center">
+            <Map className="animate-pulse h-8 w-8 text-housing-500 mb-2" />
+            <p className="text-housing-600">Loading map...</p>
+          </div>
         </div>
-      ) : (
-        <div
-          ref={mapContainer}
-          style={{ height, width: '100%', borderRadius: '0.5rem' }}
-          className="bg-housing-100"
-        />
       )}
     </div>
   );
