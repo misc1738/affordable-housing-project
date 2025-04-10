@@ -9,8 +9,10 @@ import MortgageCalculator from "@/components/MortgageCalculator";
 import EligibilityChecker from "@/components/EligibilityChecker";
 import PropertyMap from "@/components/PropertyMap";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { PropertyFiltersState } from "@/components/PropertyFilters";
+import { useState } from "react";
 
 // Sample properties data with Kenyan context
 const properties = [
@@ -111,6 +113,37 @@ const applicationSteps = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+  
+  // Apply filters handler
+  const handleApplyFilters = (filters: PropertyFiltersState) => {
+    // Create URL parameters based on filters
+    const params = new URLSearchParams();
+    
+    if (filters.priceRange !== "1000-2000") params.set("price", filters.priceRange);
+    if (filters.bedrooms !== "any") params.set("bedrooms", filters.bedrooms);
+    if (filters.propertyType !== "any") params.set("type", filters.propertyType);
+    if (filters.eligibility !== "any") params.set("eligibility", filters.eligibility);
+    if (filters.incomeType !== "all") params.set("income", filters.incomeType);
+    
+    // Navigate to properties page with filters
+    navigate({
+      pathname: "/properties",
+      search: params.toString()
+    });
+  };
+  
+  // Handle marker click on map
+  const handleMarkerClick = (id: number) => {
+    setSelectedPropertyId(id);
+    // Highlight the property card (could be enhanced with scroll-to behavior)
+    const propertyCard = document.getElementById(`property-card-${id}`);
+    if (propertyCard) {
+      propertyCard.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-housing-50">
       <Navbar />
@@ -121,7 +154,7 @@ const Index = () => {
       
       <section className="container mx-auto px-4 py-12">
         <div className="mb-8">
-          <PropertyFilters />
+          <PropertyFilters onApplyFilters={handleApplyFilters} />
         </div>
         
         <div className="text-center mb-8">
@@ -143,7 +176,13 @@ const Index = () => {
           <TabsContent value="grid" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {properties.map((property) => (
-                <PropertyCard key={property.id} {...property} />
+                <div 
+                  id={`property-card-${property.id}`} 
+                  key={property.id}
+                  className={`transition-all ${property.id === selectedPropertyId ? 'ring-2 ring-housing-500 scale-[1.02]' : ''}`}
+                >
+                  <PropertyCard key={property.id} {...property} />
+                </div>
               ))}
             </div>
           </TabsContent>
@@ -153,10 +192,22 @@ const Index = () => {
                 locations={propertyLocations}
                 height="500px"
                 zoom={11}
+                interactive={true}
+                onMarkerClick={handleMarkerClick}
               />
             </div>
           </TabsContent>
         </Tabs>
+        
+        <div className="text-center mt-8">
+          <Button 
+            size="lg" 
+            onClick={() => navigate("/properties")}
+            className="bg-housing-800 hover:bg-housing-900"
+          >
+            View All Properties
+          </Button>
+        </div>
       </section>
 
       <section className="container mx-auto px-4 py-16 bg-gradient-to-b from-transparent to-housing-100/50">

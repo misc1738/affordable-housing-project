@@ -20,6 +20,7 @@ import HousingTimeline from "./pages/HousingTimeline";
 import Neighborhood from "./pages/Neighborhood";
 import News from "./pages/News";
 import PreferenceQuiz from "./pages/PreferenceQuiz";
+import MapExplorer from "./pages/MapExplorer";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/neighborhoods" element={<Neighborhood />} />
           <Route path="/news" element={<News />} />
           <Route path="/quiz" element={<PreferenceQuiz />} />
+          <Route path="/map-explorer" element={<MapExplorer />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

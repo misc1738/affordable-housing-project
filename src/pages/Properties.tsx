@@ -1,13 +1,25 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import PropertyCard from "@/components/PropertyCard";
-import PropertyFilters from "@/components/PropertyFilters";
+import PropertyFilters, { PropertyFiltersState } from "@/components/PropertyFilters";
 import PropertyMap from "@/components/PropertyMap";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
-import { Grid, List, Map } from "lucide-react";
+import { Grid, List, Map, Filter, X } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import { useMobile } from "@/hooks/use-mobile";
 
 // Sample properties data with Kenyan context
 const properties = [
@@ -97,21 +109,133 @@ const propertyLocations = [
   { id: 8, title: "AHP Residence in Pangani", lat: -1.2716, lng: 36.8365, price: 42000 },
 ];
 
-// Fetch properties (simulated API call)
-const fetchProperties = async () => {
-  // In a real app, this would be an API call
+// Fetch properties with filters (simulated API call)
+const fetchProperties = async (filters?: Partial<PropertyFiltersState>) => {
+  // In a real app, this would be an API call with filter parameters
   return new Promise((resolve) => {
-    setTimeout(() => resolve(properties), 500);
+    setTimeout(() => {
+      let filteredProperties = [...properties];
+      
+      if (filters) {
+        // Filter by price range
+        if (filters.priceRange) {
+          const [minPrice, maxPrice] = filters.priceRange.split('-').map(Number);
+          if (!isNaN(minPrice) && !isNaN(maxPrice)) {
+            filteredProperties = filteredProperties.filter(
+              property => property.price >= minPrice * 1000 && property.price <= maxPrice * 1000
+            );
+          } else if (filters.priceRange.includes('+')) {
+            const minPrice = parseInt(filters.priceRange);
+            filteredProperties = filteredProperties.filter(
+              property => property.price >= minPrice * 1000
+            );
+          }
+        }
+        
+        // Filter by bedrooms
+        if (filters.bedrooms && filters.bedrooms !== 'any') {
+          if (filters.bedrooms === 'studio') {
+            filteredProperties = filteredProperties.filter(
+              property => property.type === 'Studio'
+            );
+          } else {
+            const bedroomCount = parseInt(filters.bedrooms);
+            if (!isNaN(bedroomCount)) {
+              if (filters.bedrooms === '3') {
+                filteredProperties = filteredProperties.filter(
+                  property => property.bedrooms >= 3
+                );
+              } else {
+                filteredProperties = filteredProperties.filter(
+                  property => property.bedrooms === bedroomCount
+                );
+              }
+            }
+          }
+        }
+        
+        // Filter by property type
+        if (filters.propertyType && filters.propertyType !== 'any') {
+          filteredProperties = filteredProperties.filter(
+            property => property.type.toLowerCase() === filters.propertyType.toLowerCase()
+          );
+        }
+        
+        // Additional filters would be implemented here
+      }
+      
+      resolve(filteredProperties);
+    }, 500);
   });
+};
+
+// Filter property locations based on filtered properties
+const getFilteredLocations = (filteredProperties: any[]) => {
+  return propertyLocations.filter(location => 
+    filteredProperties.some(property => property.id === location.id)
+  );
 };
 
 const Properties = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
+  const [searchParams] = useSearchParams();
+  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
+  const [filters, setFilters] = useState<Partial<PropertyFiltersState>>({});
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const { toast } = useToast();
+  const isMobile = useMobile();
   
-  const { data: propertiesData, isLoading } = useQuery({
-    queryKey: ["properties"],
-    queryFn: fetchProperties,
+  // Extract filters from URL params on component mount
+  useEffect(() => {
+    const initialFilters: Partial<PropertyFiltersState> = {};
+    
+    const priceParam = searchParams.get("price");
+    const bedroomsParam = searchParams.get("bedrooms");
+    const propertyTypeParam = searchParams.get("type");
+    const eligibilityParam = searchParams.get("eligibility");
+    const incomeTypeParam = searchParams.get("income");
+    
+    if (priceParam) initialFilters.priceRange = priceParam;
+    if (bedroomsParam) initialFilters.bedrooms = bedroomsParam;
+    if (propertyTypeParam) initialFilters.propertyType = propertyTypeParam;
+    if (eligibilityParam) initialFilters.eligibility = eligibilityParam;
+    if (incomeTypeParam) initialFilters.incomeType = incomeTypeParam;
+    
+    setFilters(initialFilters);
+  }, [searchParams]);
+  
+  // Query for properties
+  const { data: propertiesData, isLoading, error, refetch } = useQuery({
+    queryKey: ["properties", filters],
+    queryFn: () => fetchProperties(filters),
+    initialData: properties
   });
+
+  // Handle property filter application
+  const handleApplyFilters = (newFilters: PropertyFiltersState) => {
+    setFilters(newFilters);
+    refetch();
+    setIsFilterDrawerOpen(false);
+  };
+  
+  // Get filtered locations for map
+  const filteredLocations = getFilteredLocations(propertiesData as any[]);
+  
+  // Handle marker click on map
+  const handleMarkerClick = (id: number) => {
+    setSelectedPropertyId(id);
+    if (viewMode !== "map") {
+      setViewMode("map");
+    }
+    
+    // Scroll to the selected property if in list view
+    if (viewMode === "list") {
+      const element = document.getElementById(`property-${id}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-housing-50">
@@ -129,14 +253,66 @@ const Properties = () => {
             </p>
           </div>
           
-          <div className="mb-8">
-            <PropertyFilters />
-          </div>
+          {isMobile ? (
+            <div className="mb-6">
+              <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
+                <DrawerTrigger asChild>
+                  <Button className="w-full flex items-center justify-center">
+                    <Filter className="w-4 h-4 mr-2" />
+                    {Object.keys(filters).length > 0 ? "Filters Applied" : "Filter Properties"}
+                  </Button>
+                </DrawerTrigger>
+                <DrawerContent className="max-h-[90vh] overflow-y-auto">
+                  <DrawerHeader>
+                    <DrawerTitle>Filter Properties</DrawerTitle>
+                    <DrawerDescription>Customize your property search</DrawerDescription>
+                  </DrawerHeader>
+                  <div className="px-4">
+                    <PropertyFilters 
+                      initialFilters={filters}
+                      onApplyFilters={handleApplyFilters}
+                    />
+                  </div>
+                  <DrawerFooter>
+                    <DrawerClose asChild>
+                      <Button variant="outline">Close</Button>
+                    </DrawerClose>
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
+            </div>
+          ) : (
+            <div className="mb-8">
+              <PropertyFilters 
+                initialFilters={filters}
+                onApplyFilters={handleApplyFilters}
+              />
+            </div>
+          )}
           
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap justify-between items-center mb-6">
             <div>
               <p className="text-housing-600">
-                Showing <span className="font-semibold">{properties.length}</span> properties
+                Showing <span className="font-semibold">{propertiesData?.length || 0}</span> properties
+                {Object.keys(filters).length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    className="ml-2 h-8 px-2 py-1 text-sm" 
+                    onClick={() => {
+                      setFilters({});
+                      // Clear URL params
+                      window.history.replaceState({}, '', `${window.location.pathname}`);
+                      refetch();
+                      toast({
+                        title: "Filters Cleared",
+                        description: "All filters have been reset to default values."
+                      });
+                    }}
+                  >
+                    <X className="w-3 h-3 mr-1" />
+                    Clear filters
+                  </Button>
+                )}
               </p>
             </div>
             
@@ -173,57 +349,104 @@ const Properties = () => {
           
           {isLoading ? (
             <div className="text-center py-12">
-              <p>Loading properties...</p>
+              <div className="animate-pulse flex flex-col items-center">
+                <div className="w-10 h-10 bg-housing-300 rounded-full mb-4"></div>
+                <div className="h-4 bg-housing-200 rounded w-32 mb-2"></div>
+                <div className="h-3 bg-housing-200 rounded w-48"></div>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-500">Error loading properties. Please try again.</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => refetch()}
+              >
+                Retry
+              </Button>
             </div>
           ) : (
             <>
-              {viewMode === "grid" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {properties.map((property) => (
-                    <PropertyCard key={property.id} {...property} />
-                  ))}
+              {propertiesData && propertiesData.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-housing-200">
+                  <h3 className="text-lg font-semibold mb-2">No properties found</h3>
+                  <p className="text-housing-600 mb-4">
+                    No properties match your current filter criteria. Try adjusting your filters.
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      setFilters({});
+                      // Clear URL params
+                      window.history.replaceState({}, '', `${window.location.pathname}`);
+                      refetch();
+                    }}
+                  >
+                    Reset All Filters
+                  </Button>
                 </div>
-              )}
-              
-              {viewMode === "list" && (
-                <div className="space-y-4">
-                  {properties.map((property) => (
-                    <div key={property.id} className="flex flex-col md:flex-row bg-white rounded-lg overflow-hidden border border-housing-200 shadow-sm">
-                      <div className="md:w-1/3 h-48 md:h-auto">
-                        <img 
-                          src={property.imageUrl} 
-                          alt={property.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-6 md:w-2/3 flex flex-col justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold text-housing-800 mb-2">{property.title}</h3>
-                          <p className="text-housing-600 mb-4">{property.address}</p>
-                          <div className="flex items-center space-x-4 text-housing-600">
-                            <span>{property.bedrooms} Bedroom{property.bedrooms !== 1 ? 's' : ''}</span>
-                            <span>•</span>
-                            <span>{property.type}</span>
+              ) : (
+                <>
+                  {viewMode === "grid" && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {propertiesData.map((property: any) => (
+                        <PropertyCard key={property.id} {...property} />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {viewMode === "list" && (
+                    <div className="space-y-4">
+                      {propertiesData.map((property: any) => (
+                        <div 
+                          key={property.id} 
+                          id={`property-${property.id}`}
+                          className={`flex flex-col md:flex-row bg-white rounded-lg overflow-hidden border transition-all ${
+                            property.id === selectedPropertyId ? 'border-housing-500 ring-2 ring-housing-200' : 'border-housing-200'
+                          } shadow-sm`}
+                        >
+                          <div className="md:w-1/3 h-48 md:h-auto">
+                            <img 
+                              src={property.imageUrl} 
+                              alt={property.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="p-6 md:w-2/3 flex flex-col justify-between">
+                            <div>
+                              <h3 className="text-lg font-semibold text-housing-800 mb-2">{property.title}</h3>
+                              <p className="text-housing-600 mb-4">{property.address}</p>
+                              <div className="flex items-center space-x-4 text-housing-600">
+                                <span>{property.bedrooms} Bedroom{property.bedrooms !== 1 ? 's' : ''}</span>
+                                <span>•</span>
+                                <span>{property.type}</span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center mt-4">
+                              <p className="text-xl font-bold text-housing-800">KES {property.price.toLocaleString()}/mo</p>
+                              <Button onClick={() => window.location.href = `/property/${property.id}`}>View Details</Button>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex justify-between items-center mt-4">
-                          <p className="text-xl font-bold text-housing-800">KES {property.price.toLocaleString()}/mo</p>
-                          <Button>View Details</Button>
-                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {viewMode === "map" && (
+                    <div className="bg-white rounded-lg p-6 shadow-sm border border-housing-200">
+                      <PropertyMap
+                        locations={filteredLocations}
+                        height="600px"
+                        zoom={11}
+                        interactive={true}
+                        onMarkerClick={handleMarkerClick}
+                      />
+                      <div className="mt-4 text-sm text-housing-600">
+                        <p>Click on map markers to view property details. Use zoom controls to explore different areas.</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-              
-              {viewMode === "map" && (
-                <div className="bg-white rounded-lg p-6 shadow-sm border border-housing-200">
-                  <PropertyMap
-                    locations={propertyLocations}
-                    height="600px"
-                    zoom={11}
-                  />
-                </div>
+                  )}
+                </>
               )}
             </>
           )}
