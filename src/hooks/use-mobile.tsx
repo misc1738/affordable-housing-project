@@ -20,4 +20,4 @@ export function useIsMobile() {
 }
 
 // Add alias export for backward compatibility
-export const useMobile = useIsMobile;
+export const useMobile = useIsMobile

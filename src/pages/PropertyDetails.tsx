@@ -9,19 +9,26 @@ import {
   Phone, 
   Share2, 
   SunMedium, 
-  LandPlot
+  LandPlot,
+  Calendar
 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
 import PropertyMap from "@/components/PropertyMap";
 import VerificationBadge from "@/components/VerificationBadge";
 
 const PropertyDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [activeImage, setActiveImage] = useState(0);
+  const [isViewingDialogOpen, setIsViewingDialogOpen] = useState(false);
   
   // Mock property data (would typically come from API)
   const property = {
@@ -68,6 +75,24 @@ const PropertyDetails = () => {
       ]
     }
   };
+
+  const handleApplyNow = () => {
+    // Navigate to application page with property ID
+    navigate(`/apply?propertyId=${property.id}&propertyName=${encodeURIComponent(property.title)}`);
+  };
+
+  const handleScheduleViewing = () => {
+    setIsViewingDialogOpen(true);
+  };
+
+  const handleSubmitViewingRequest = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Viewing Scheduled",
+      description: `Your viewing request for ${property.title} has been submitted. We will contact you shortly to confirm.`,
+    });
+    setIsViewingDialogOpen(false);
+  };
   
   return (
     <div className="min-h-screen bg-housing-50">
@@ -75,7 +100,7 @@ const PropertyDetails = () => {
       
       <div className="container mx-auto px-4 pt-20 pb-16">
         <div className="mb-6">
-          <Link to="/" className="flex items-center text-housing-600 hover:text-housing-800 transition-colors">
+          <Link to="/properties" className="flex items-center text-housing-600 hover:text-housing-800 transition-colors">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to listings
           </Link>
@@ -91,7 +116,10 @@ const PropertyDetails = () => {
               <VerificationBadge type={property.verificationStatus} />
             </div>
             <div className="mt-2 md:mt-0 flex items-center gap-2">
-              <Button variant="outline" size="sm" className="text-housing-600">
+              <Button variant="outline" size="sm" className="text-housing-600" onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                toast({ description: "Link copied to clipboard" });
+              }}>
                 <Share2 className="mr-2 h-4 w-4" />
                 Share
               </Button>
@@ -259,17 +287,67 @@ const PropertyDetails = () => {
                 </div>
               </div>
               
-              <Button className="w-full bg-housing-800 hover:bg-housing-900 mb-3">
+              <Button 
+                className="w-full bg-housing-800 hover:bg-housing-900 mb-3"
+                onClick={handleApplyNow}
+              >
                 Apply Now
               </Button>
               
-              <Button variant="outline" className="w-full border-housing-300 text-housing-700 hover:bg-housing-50">
+              <Button 
+                variant="outline" 
+                className="w-full border-housing-300 text-housing-700 hover:bg-housing-50"
+                onClick={handleScheduleViewing}
+              >
+                <Calendar className="w-4 h-4 mr-2" />
                 Schedule Viewing
               </Button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Schedule Viewing Dialog */}
+      <Dialog open={isViewingDialogOpen} onOpenChange={setIsViewingDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Schedule a Viewing</DialogTitle>
+            <DialogDescription>
+              Complete the form below to schedule a viewing for {property.title}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmitViewingRequest}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input id="name" placeholder="Enter your full name" required />
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input id="phone" placeholder="Enter your phone number" required />
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input id="email" type="email" placeholder="Enter your email address" required />
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="date">Preferred Date</Label>
+                <Input id="date" type="date" required min={new Date().toISOString().split('T')[0]} />
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                <Label htmlFor="time">Preferred Time</Label>
+                <Input id="time" type="time" required />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button type="submit">Schedule Viewing</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

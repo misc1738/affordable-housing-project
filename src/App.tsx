@@ -21,6 +21,7 @@ import Neighborhood from "./pages/Neighborhood";
 import News from "./pages/News";
 import PreferenceQuiz from "./pages/PreferenceQuiz";
 import MapExplorer from "./pages/MapExplorer";
+import ScheduleViewing from "./pages/ScheduleViewing";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/property/:id" element={<PropertyDetails />} />
+          <Route path="/schedule-viewing/:id" element={<ScheduleViewing />} />
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/resources" element={<Resources />} />
           <Route path="/apply" element={<Apply />} />

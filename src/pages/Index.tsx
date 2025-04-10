@@ -1,3 +1,4 @@
+
 import SearchHero from "@/components/SearchHero";
 import AffordabilityCalculator from "@/components/AffordabilityCalculator";
 import PropertyCard from "@/components/PropertyCard";
@@ -193,7 +194,9 @@ const Index = () => {
                 height="500px"
                 zoom={11}
                 interactive={true}
-                onMarkerClick={handleMarkerClick}
+                onMarkerClick={(id) => {
+                  navigate(`/property/${id}`);
+                }}
               />
             </div>
           </TabsContent>
@@ -242,6 +245,11 @@ const Index = () => {
             property="Modern Apartment - Kirichwa Road, Kilimani, Nairobi"
             steps={applicationSteps}
           />
+          <div className="text-center mt-8">
+            <Button onClick={() => navigate('/applications')}>
+              View All Applications
+            </Button>
+          </div>
         </div>
       </section>
       
@@ -262,20 +270,20 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-3 text-white/90">Quick Links</h4>
               <ul className="space-y-2 text-sm text-housing-300">
-                <li><a href="#" className="hover:text-white transition-colors">Home</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Search Properties</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Apply for Housing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Resources</a></li>
+                <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
+                <li><Link to="/properties" className="hover:text-white transition-colors">Search Properties</Link></li>
+                <li><Link to="/apply" className="hover:text-white transition-colors">Apply for Housing</Link></li>
+                <li><Link to="/resources" className="hover:text-white transition-colors">Resources</Link></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold mb-3 text-white/90">Resources</h4>
               <ul className="space-y-2 text-sm text-housing-300">
-                <li><a href="#" className="hover:text-white transition-colors">Housing Programs</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Tenant Rights</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Financial Assistance</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">FAQ</a></li>
+                <li><Link to="/resources" className="hover:text-white transition-colors">Housing Programs</Link></li>
+                <li><Link to="/resources" className="hover:text-white transition-colors">Tenant Rights</Link></li>
+                <li><Link to="/resources" className="hover:text-white transition-colors">Financial Assistance</Link></li>
+                <li><Link to="/resources" className="hover:text-white transition-colors">FAQ</Link></li>
               </ul>
             </div>
             

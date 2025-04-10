@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import DocumentManager from "@/components/DocumentManager";
 import PropertyAlerts from "@/components/PropertyAlerts";
@@ -9,6 +10,7 @@ import MPesaPayment from "@/components/MPesaPayment";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   FileText, 
@@ -50,7 +52,34 @@ const sampleProperties = [
 
 const UserDashboard = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [showPayment, setShowPayment] = useState(false);
+  
+  const handleViewDetails = (id: number) => {
+    navigate(`/property/${id}`);
+  };
+  
+  const handleApply = (id: number, name: string) => {
+    navigate(`/apply?propertyId=${id}&propertyName=${encodeURIComponent(name)}`);
+  };
+  
+  const handleViewProfile = () => {
+    toast({
+      title: "Profile Information",
+      description: "This feature will be available soon. Stay tuned!",
+    });
+  };
+  
+  const handleNotificationSettings = () => {
+    toast({
+      title: "Notification Settings",
+      description: "This feature will be available soon. Stay tuned!",
+    });
+  };
+  
+  const handlePreferences = () => {
+    navigate('/quiz');
+  };
   
   return (
     <div className="min-h-screen bg-housing-50">
@@ -105,7 +134,13 @@ const UserDashboard = () => {
               <MPesaPayment 
                 amount={15000} 
                 description="Application fee for Modern Apartment in Kilimani" 
-                onSuccess={() => setShowPayment(false)}
+                onSuccess={() => {
+                  setShowPayment(false);
+                  toast({
+                    title: "Payment Successful",
+                    description: "Your payment has been processed successfully."
+                  });
+                }}
                 onCancel={() => setShowPayment(false)}
               />
             ) : (
@@ -175,7 +210,7 @@ const UserDashboard = () => {
                         <p className="font-medium text-housing-800">Modern Apartment in Kilimani</p>
                         <p className="text-sm text-housing-500">Applied on May 10, 2023</p>
                         <div className="flex justify-end mt-2">
-                          <Button variant="outline" size="sm" className="text-xs">
+                          <Button variant="outline" size="sm" className="text-xs" onClick={() => handleViewDetails(1)}>
                             View Details
                           </Button>
                         </div>
@@ -193,10 +228,10 @@ const UserDashboard = () => {
                         <p className="font-medium text-housing-800">Family Home in Karen</p>
                         <p className="text-sm text-housing-500">Saved on May 5, 2023</p>
                         <div className="flex justify-end mt-2 gap-2">
-                          <Button variant="outline" size="sm" className="text-xs">
+                          <Button variant="outline" size="sm" className="text-xs" onClick={() => handleViewDetails(3)}>
                             View
                           </Button>
-                          <Button variant="default" size="sm" className="text-xs">
+                          <Button variant="default" size="sm" className="text-xs" onClick={() => handleApply(3, "Family Home in Karen")}>
                             Apply
                           </Button>
                         </div>
@@ -220,17 +255,17 @@ const UserDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <Button variant="outline" className="h-auto py-6 flex flex-col items-center justify-center">
+                  <Button variant="outline" className="h-auto py-6 flex flex-col items-center justify-center" onClick={handleViewProfile}>
                     <User className="h-8 w-8 mb-2 text-housing-600" />
                     <span className="font-medium text-housing-800">Profile Information</span>
                   </Button>
                   
-                  <Button variant="outline" className="h-auto py-6 flex flex-col items-center justify-center">
+                  <Button variant="outline" className="h-auto py-6 flex flex-col items-center justify-center" onClick={handleNotificationSettings}>
                     <Bell className="h-8 w-8 mb-2 text-housing-600" />
                     <span className="font-medium text-housing-800">Notification Settings</span>
                   </Button>
                   
-                  <Button variant="outline" className="h-auto py-6 flex flex-col items-center justify-center">
+                  <Button variant="outline" className="h-auto py-6 flex flex-col items-center justify-center" onClick={handlePreferences}>
                     <BarChart3 className="h-8 w-8 mb-2 text-housing-600" />
                     <span className="font-medium text-housing-800">Preferences</span>
                   </Button>

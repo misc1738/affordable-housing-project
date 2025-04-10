@@ -1,6 +1,6 @@
 
 import Navbar from "@/components/Navbar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,9 +13,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/use-toast";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 const Apply = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const propertyId = searchParams.get('propertyId');
+  const propertyName = searchParams.get('propertyName');
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +33,7 @@ const Apply = () => {
         title: "Application Submitted",
         description: "Your housing application has been received. We will review it and get back to you within 5-7 business days.",
       });
+      navigate('/applications');
     }, 1500);
   };
   
@@ -40,7 +46,7 @@ const Apply = () => {
           <div className="max-w-3xl mx-auto">
             <div className="mb-8 text-center">
               <h1 className="text-3xl md:text-4xl font-display font-bold text-housing-800 mb-4">
-                Apply for Affordable Housing
+                {propertyId ? `Apply for ${propertyName || 'Selected Property'}` : 'Apply for Affordable Housing'}
               </h1>
               <p className="text-housing-600">
                 Complete this form to apply for affordable housing programs in Kenya
@@ -50,6 +56,13 @@ const Apply = () => {
             <div className="bg-white rounded-lg shadow-sm border border-housing-200 p-6 md:p-8">
               <form onSubmit={handleSubmit}>
                 <div className="space-y-6">
+                  {propertyId && (
+                    <div className="p-4 bg-housing-50 rounded-lg border border-housing-200 mb-6">
+                      <h3 className="font-medium text-housing-800 mb-2">Application for Property #{propertyId}</h3>
+                      <p className="text-housing-600">{propertyName || 'Selected Property'}</p>
+                    </div>
+                  )}
+                
                   <div className="space-y-4">
                     <h2 className="text-xl font-semibold text-housing-800">Personal Information</h2>
                     
@@ -86,40 +99,42 @@ const Apply = () => {
                   <div className="space-y-4">
                     <h2 className="text-xl font-semibold text-housing-800">Housing Preferences</h2>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="location">Preferred Location</Label>
-                        <Select>
-                          <SelectTrigger id="location">
-                            <SelectValue placeholder="Select preferred location" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="nairobi-cbd">Nairobi CBD</SelectItem>
-                            <SelectItem value="kilimani">Kilimani</SelectItem>
-                            <SelectItem value="westlands">Westlands</SelectItem>
-                            <SelectItem value="parklands">Parklands</SelectItem>
-                            <SelectItem value="karen">Karen</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
+                    {!propertyId && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="location">Preferred Location</Label>
+                          <Select>
+                            <SelectTrigger id="location">
+                              <SelectValue placeholder="Select preferred location" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="nairobi-cbd">Nairobi CBD</SelectItem>
+                              <SelectItem value="kilimani">Kilimani</SelectItem>
+                              <SelectItem value="westlands">Westlands</SelectItem>
+                              <SelectItem value="parklands">Parklands</SelectItem>
+                              <SelectItem value="karen">Karen</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="housingType">Housing Type</Label>
+                          <Select>
+                            <SelectTrigger id="housingType">
+                              <SelectValue placeholder="Select housing type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="studio">Studio</SelectItem>
+                              <SelectItem value="1br">1 Bedroom</SelectItem>
+                              <SelectItem value="2br">2 Bedroom</SelectItem>
+                              <SelectItem value="3br">3 Bedroom</SelectItem>
+                              <SelectItem value="house">House</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="housingType">Housing Type</Label>
-                        <Select>
-                          <SelectTrigger id="housingType">
-                            <SelectValue placeholder="Select housing type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="studio">Studio</SelectItem>
-                            <SelectItem value="1br">1 Bedroom</SelectItem>
-                            <SelectItem value="2br">2 Bedroom</SelectItem>
-                            <SelectItem value="3br">3 Bedroom</SelectItem>
-                            <SelectItem value="house">House</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                    )}
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -129,7 +144,7 @@ const Apply = () => {
                       
                       <div className="space-y-2">
                         <Label htmlFor="moveInDate">Preferred Move-in Date</Label>
-                        <Input id="moveInDate" type="date" required />
+                        <Input id="moveInDate" type="date" required min={new Date().toISOString().split('T')[0]} />
                       </div>
                     </div>
                     
