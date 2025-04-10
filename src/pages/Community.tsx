@@ -1,8 +1,11 @@
-import React from "react";
+
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Card,
   CardContent,
@@ -20,11 +23,12 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Community = () => {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [posts, setPosts] = useState([
     {
       id: 1,
@@ -115,7 +119,6 @@ const Community = () => {
                   </div>
                   <div>
                     <Textarea
-                      type="text"
                       placeholder="Write your post here..."
                       value={newPostContent}
                       onChange={(e) => setNewPostContent(e.target.value)}
