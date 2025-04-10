@@ -1,12 +1,12 @@
-
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
-import { MapPin, School, ShoppingCart, Train, Umbrella, FileText, Star, Users, AlertTriangle } from "lucide-react";
+import { MapPin, School, ShoppingCart, Train, Umbrella, FileText, Star, Users, AlertTriangle, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { CheckCircle2 } from 'lucide-react';
 
 interface Neighborhood {
   id: string;
@@ -664,8 +664,5 @@ const Neighborhood = () => {
     </div>
   );
 };
-
-// Missing Home icon import, adding it here
-import { Home } from "lucide-react";
 
 export default Neighborhood;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import PropertyCard from "@/components/PropertyCard";
@@ -21,7 +20,6 @@ import {
 } from "@/components/ui/drawer";
 import { useMobile } from "@/hooks/use-mobile";
 
-// Sample properties data with Kenyan context
 const properties = [
   {
     id: 1,
@@ -97,7 +95,6 @@ const properties = [
   },
 ];
 
-// Property locations for map
 const propertyLocations = [
   { id: 1, title: "Modern Apartment in Kilimani", lat: -1.2921, lng: 36.8219, price: 75000 },
   { id: 2, title: "Cozy Studio in Westlands", lat: -1.2673, lng: 36.8061, price: 45000 },
@@ -109,15 +106,12 @@ const propertyLocations = [
   { id: 8, title: "AHP Residence in Pangani", lat: -1.2716, lng: 36.8365, price: 42000 },
 ];
 
-// Fetch properties with filters (simulated API call)
 const fetchProperties = async (filters?: Partial<PropertyFiltersState>) => {
-  // In a real app, this would be an API call with filter parameters
   return new Promise((resolve) => {
     setTimeout(() => {
       let filteredProperties = [...properties];
       
       if (filters) {
-        // Filter by price range
         if (filters.priceRange) {
           const [minPrice, maxPrice] = filters.priceRange.split('-').map(Number);
           if (!isNaN(minPrice) && !isNaN(maxPrice)) {
@@ -132,7 +126,6 @@ const fetchProperties = async (filters?: Partial<PropertyFiltersState>) => {
           }
         }
         
-        // Filter by bedrooms
         if (filters.bedrooms && filters.bedrooms !== 'any') {
           if (filters.bedrooms === 'studio') {
             filteredProperties = filteredProperties.filter(
@@ -154,14 +147,11 @@ const fetchProperties = async (filters?: Partial<PropertyFiltersState>) => {
           }
         }
         
-        // Filter by property type
         if (filters.propertyType && filters.propertyType !== 'any') {
           filteredProperties = filteredProperties.filter(
             property => property.type.toLowerCase() === filters.propertyType.toLowerCase()
           );
         }
-        
-        // Additional filters would be implemented here
       }
       
       resolve(filteredProperties);
@@ -169,7 +159,6 @@ const fetchProperties = async (filters?: Partial<PropertyFiltersState>) => {
   });
 };
 
-// Filter property locations based on filtered properties
 const getFilteredLocations = (filteredProperties: any[]) => {
   return propertyLocations.filter(location => 
     filteredProperties.some(property => property.id === location.id)
@@ -185,7 +174,6 @@ const Properties = () => {
   const { toast } = useToast();
   const isMobile = useMobile();
   
-  // Extract filters from URL params on component mount
   useEffect(() => {
     const initialFilters: Partial<PropertyFiltersState> = {};
     
@@ -204,31 +192,26 @@ const Properties = () => {
     setFilters(initialFilters);
   }, [searchParams]);
   
-  // Query for properties
   const { data: propertiesData, isLoading, error, refetch } = useQuery({
     queryKey: ["properties", filters],
     queryFn: () => fetchProperties(filters),
     initialData: properties
   });
 
-  // Handle property filter application
   const handleApplyFilters = (newFilters: PropertyFiltersState) => {
     setFilters(newFilters);
     refetch();
     setIsFilterDrawerOpen(false);
   };
   
-  // Get filtered locations for map
   const filteredLocations = getFilteredLocations(propertiesData as any[]);
   
-  // Handle marker click on map
   const handleMarkerClick = (id: number) => {
     setSelectedPropertyId(id);
     if (viewMode !== "map") {
       setViewMode("map");
     }
     
-    // Scroll to the selected property if in list view
     if (viewMode === "list") {
       const element = document.getElementById(`property-${id}`);
       if (element) {
@@ -293,14 +276,13 @@ const Properties = () => {
           <div className="flex flex-wrap justify-between items-center mb-6">
             <div>
               <p className="text-housing-600">
-                Showing <span className="font-semibold">{propertiesData?.length || 0}</span> properties
+                Showing <span className="font-semibold">{(propertiesData as any[])?.length || 0}</span> properties
                 {Object.keys(filters).length > 0 && (
                   <Button 
                     variant="ghost" 
                     className="ml-2 h-8 px-2 py-1 text-sm" 
                     onClick={() => {
                       setFilters({});
-                      // Clear URL params
                       window.history.replaceState({}, '', `${window.location.pathname}`);
                       refetch();
                       toast({
@@ -368,7 +350,7 @@ const Properties = () => {
             </div>
           ) : (
             <>
-              {propertiesData && propertiesData.length === 0 ? (
+              {(propertiesData as any[])?.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-housing-200">
                   <h3 className="text-lg font-semibold mb-2">No properties found</h3>
                   <p className="text-housing-600 mb-4">
@@ -377,7 +359,6 @@ const Properties = () => {
                   <Button 
                     onClick={() => {
                       setFilters({});
-                      // Clear URL params
                       window.history.replaceState({}, '', `${window.location.pathname}`);
                       refetch();
                     }}
@@ -389,7 +370,7 @@ const Properties = () => {
                 <>
                   {viewMode === "grid" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {propertiesData.map((property: any) => (
+                      {(propertiesData as any[]).map((property: any) => (
                         <PropertyCard key={property.id} {...property} />
                       ))}
                     </div>
@@ -397,7 +378,7 @@ const Properties = () => {
                   
                   {viewMode === "list" && (
                     <div className="space-y-4">
-                      {propertiesData.map((property: any) => (
+                      {(propertiesData as any[]).map((property: any) => (
                         <div 
                           key={property.id} 
                           id={`property-${property.id}`}

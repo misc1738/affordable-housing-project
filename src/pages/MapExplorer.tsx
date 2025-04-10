@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import PropertyMap from "@/components/PropertyMap";
@@ -22,7 +21,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMobile } from "@/hooks/use-mobile";
 import { PropertyFiltersState } from "@/components/PropertyFilters";
 
-// Extended property locations with more details for the map explorer
 const propertyLocations = [
   { 
     id: 1, 
@@ -130,7 +128,6 @@ const propertyLocations = [
   }
 ];
 
-// Points of interest - not properties but useful landmarks
 const pointsOfInterest = [
   { id: 'poi-1', title: 'Westgate Shopping Mall', lat: -1.2565, lng: 36.8030, type: 'shopping' },
   { id: 'poi-2', title: 'Two Rivers Mall', lat: -1.2208, lng: 36.8042, type: 'shopping' },
@@ -158,12 +155,10 @@ const MapExplorer = () => {
   const isMobile = useMobile();
   const [searchParams] = useSearchParams();
   
-  // State for selected property and filters
   const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [filteredLocations, setFilteredLocations] = useState(propertyLocations);
   
-  // Map filters state
   const [filters, setFilters] = useState<MapFilters>({
     priceRange: [0, 150000],
     bedrooms: "any",
@@ -173,9 +168,7 @@ const MapExplorer = () => {
     poiTypes: ["shopping", "health", "education", "park"]
   });
   
-  // Get filters from URL params on mount
   useEffect(() => {
-    // Extract filters from URL if available
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
     const bedrooms = searchParams.get("bedrooms");
@@ -204,17 +197,14 @@ const MapExplorer = () => {
     applyFilters(newFilters);
   }, [searchParams]);
   
-  // Apply filters to the property locations
   const applyFilters = (currentFilters: MapFilters) => {
     let results = [...propertyLocations];
     
-    // Filter by price range
     results = results.filter(property => 
       property.price >= currentFilters.priceRange[0] && 
       property.price <= currentFilters.priceRange[1]
     );
     
-    // Filter by bedrooms
     if (currentFilters.bedrooms !== "any") {
       if (currentFilters.bedrooms === "studio") {
         results = results.filter(property => property.type === "Studio");
@@ -226,14 +216,12 @@ const MapExplorer = () => {
       }
     }
     
-    // Filter by property type
     if (currentFilters.propertyType !== "any") {
       results = results.filter(property => 
         property.type.toLowerCase() === currentFilters.propertyType.toLowerCase()
       );
     }
     
-    // Filter by amenities
     if (currentFilters.amenities.length > 0) {
       results = results.filter(property => 
         currentFilters.amenities.every(amenity => 
@@ -244,19 +232,16 @@ const MapExplorer = () => {
     
     setFilteredLocations(results);
     
-    // Show notification about results
     toast({
       title: `${results.length} Properties Found`,
       description: `Showing ${results.length} properties matching your criteria.`,
     });
   };
   
-  // Handle filter submit
   const handleFilterSubmit = () => {
     applyFilters(filters);
     setIsFilterDrawerOpen(false);
     
-    // Update URL with filters
     const params = new URLSearchParams();
     params.set("minPrice", filters.priceRange[0].toString());
     params.set("maxPrice", filters.priceRange[1].toString());
@@ -276,9 +261,8 @@ const MapExplorer = () => {
     window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
   };
   
-  // Reset filters
   const handleResetFilters = () => {
-    const defaultFilters = {
+    const defaultFilters: MapFilters = {
       priceRange: [0, 150000],
       bedrooms: "any",
       propertyType: "any",
@@ -290,7 +274,6 @@ const MapExplorer = () => {
     setFilters(defaultFilters);
     applyFilters(defaultFilters);
     
-    // Clear URL params
     window.history.replaceState({}, '', window.location.pathname);
     
     toast({
@@ -299,7 +282,6 @@ const MapExplorer = () => {
     });
   };
   
-  // Handle amenity toggle
   const handleAmenityToggle = (amenity: string) => {
     if (filters.amenities.includes(amenity)) {
       setFilters(prev => ({
@@ -314,7 +296,6 @@ const MapExplorer = () => {
     }
   };
   
-  // Handle POI type toggle
   const handlePoiTypeToggle = (poiType: string) => {
     if (filters.poiTypes.includes(poiType)) {
       setFilters(prev => ({
@@ -329,26 +310,22 @@ const MapExplorer = () => {
     }
   };
   
-  // Format price for display
   const formatPrice = (price: number) => {
     return `KSh ${price.toLocaleString()}`;
   };
   
-  // Get current points of interest based on filters
   const currentPointsOfInterest = filters.showPointsOfInterest 
     ? pointsOfInterest.filter(poi => filters.poiTypes.includes(poi.type))
     : [];
   
-  // Create combined map locations
   const mapLocations = [
     ...filteredLocations,
-    // Add POIs if enabled, but with a different mapping to match PropertyLocation interface
     ...currentPointsOfInterest.map(poi => ({
       id: parseInt(poi.id.split('-')[1]),
       title: poi.title,
       lat: poi.lat,
       lng: poi.lng,
-      price: 0, // POIs don't have prices
+      price: 0,
       isPOI: true,
       poiType: poi.type
     }))
@@ -371,7 +348,6 @@ const MapExplorer = () => {
           </div>
           
           <div className="flex flex-col lg:flex-row gap-6">
-            {/* Map container */}
             <div className="lg:w-2/3">
               <Card>
                 <CardHeader className="pb-4">
@@ -392,7 +368,6 @@ const MapExplorer = () => {
                         
                         <div className="px-4 pb-8">
                           <div className="space-y-6">
-                            {/* Price Range Filter */}
                             <div className="space-y-2">
                               <Label>Price Range</Label>
                               <div className="pt-4 pb-2 px-2">
@@ -410,7 +385,6 @@ const MapExplorer = () => {
                               </div>
                             </div>
                             
-                            {/* Bedrooms Filter */}
                             <div className="space-y-2">
                               <Label htmlFor="bedrooms">Bedrooms</Label>
                               <Select
@@ -429,7 +403,6 @@ const MapExplorer = () => {
                               </Select>
                             </div>
                             
-                            {/* Property Type Filter */}
                             <div className="space-y-2">
                               <Label htmlFor="property-type">Property Type</Label>
                               <Select
@@ -448,7 +421,6 @@ const MapExplorer = () => {
                               </Select>
                             </div>
                             
-                            {/* Amenities Filter */}
                             <div className="space-y-2">
                               <Label>Amenities</Label>
                               <div className="grid grid-cols-2 gap-2 pt-2">
@@ -467,7 +439,6 @@ const MapExplorer = () => {
                               </div>
                             </div>
                             
-                            {/* Points of Interest */}
                             <div className="space-y-2">
                               <div className="flex items-center space-x-2">
                                 <Checkbox 
@@ -524,7 +495,6 @@ const MapExplorer = () => {
                               )}
                             </div>
                             
-                            {/* Filter Actions */}
                             <div className="flex flex-col sm:flex-row gap-3 pt-4">
                               <Button onClick={handleFilterSubmit} className="flex-1">
                                 Apply Filters
@@ -550,7 +520,6 @@ const MapExplorer = () => {
                     zoom={12}
                     interactive={true}
                     onMarkerClick={(id) => {
-                      // Only handle clicks for property markers, not POIs
                       const selectedProperty = filteredLocations.find(p => p.id === id);
                       if (selectedProperty) {
                         setSelectedPropertyId(id);
@@ -596,7 +565,6 @@ const MapExplorer = () => {
               </Card>
             </div>
             
-            {/* Property List */}
             <div className="lg:w-1/3 space-y-4">
               <Card>
                 <CardHeader className="pb-2">

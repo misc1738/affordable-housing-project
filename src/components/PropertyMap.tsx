@@ -1,9 +1,8 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Map, Building, Navigation, Search, Plus, Minus, Locate, Eye, Map as MapIcon, List } from 'lucide-react';
+import { Map, Building, Navigation, Search, Plus, Minus, Locate, Eye, Map as MapIcon, List, MapPin } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -65,7 +64,6 @@ const PropertyMap = ({
   const isMobile = useMobile();
 
   useEffect(() => {
-    // Load MapQuest API script
     if (!document.getElementById('mapquest-api')) {
       const script = document.createElement('script');
       script.id = 'mapquest-api';
@@ -73,7 +71,6 @@ const PropertyMap = ({
       script.async = true;
       script.onload = () => setApiLoaded(true);
       
-      // Add MapQuest CSS
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = 'https://api.mqcdn.com/sdk/mapquest-js/v1.3.2/mapquest.css';
@@ -85,11 +82,9 @@ const PropertyMap = ({
     }
   }, []);
 
-  // Initialize and update map
   useEffect(() => {
     if (apiLoaded && mapContainer.current && window.L) {
       try {
-        // Initialize map
         window.L.mapquest.key = MAPQUEST_API_KEY;
         
         if (mapRef.current) {
@@ -97,13 +92,12 @@ const PropertyMap = ({
         }
         
         mapRef.current = window.L.mapquest.map(mapContainer.current, {
-          center: [center[1], center[0]], // MapQuest uses [lat, lng] order
+          center: [center[1], center[0]],
           layers: window.L.mapquest.tileLayer(mapStyle),
           zoom: zoom,
           zoomControl: false
         });
         
-        // Add markers for property locations
         locations.forEach(location => {
           const marker = window.L.marker([location.lat, location.lng], {
             icon: window.L.mapquest.icons.marker({
@@ -116,7 +110,6 @@ const PropertyMap = ({
             title: location.title
           });
           
-          // Add popup and click handler
           marker.bindPopup(`
             <div class="font-sans">
               <h3 class="font-bold text-sm mb-1">${location.title}</h3>
@@ -132,7 +125,6 @@ const PropertyMap = ({
           
           marker.addTo(mapRef.current);
           
-          // Handle marker click
           marker.on('click', () => {
             setSelectedLocation(location);
             
@@ -142,7 +134,6 @@ const PropertyMap = ({
           });
         });
         
-        // Define global function for marker buttons
         window.mapMarkerClicked = (id) => {
           if (onMarkerClick) {
             onMarkerClick(id);
@@ -151,7 +142,6 @@ const PropertyMap = ({
           }
         };
         
-        // Add current location marker if available
         if (currentLocation) {
           const userMarker = window.L.marker([currentLocation[1], currentLocation[0]], {
             icon: window.L.mapquest.icons.marker({
@@ -165,9 +155,7 @@ const PropertyMap = ({
           userMarker.bindPopup('<b>Your Location</b>').addTo(mapRef.current);
         }
         
-        // Add custom controls if interactive
         if (interactive) {
-          // Add zoom controls
           const zoomControl = window.L.control({
             position: 'topright'
           });
@@ -183,7 +171,6 @@ const PropertyMap = ({
               </button>
             `;
             
-            // Add event listeners
             window.L.DomEvent.on(div.querySelector('#zoom-in'), 'click', function(e) {
               window.L.DomEvent.stopPropagation(e);
               mapRef.current.zoomIn();
@@ -199,7 +186,6 @@ const PropertyMap = ({
           
           zoomControl.addTo(mapRef.current);
           
-          // Add layer control
           const layerControl = window.L.control({
             position: 'bottomleft'
           });
@@ -214,7 +200,6 @@ const PropertyMap = ({
               </div>
             `;
             
-            // Add event listeners
             window.L.DomEvent.on(div.querySelector('#map-style-map'), 'click', function(e) {
               window.L.DomEvent.stopPropagation(e);
               changeMapStyle('map');
@@ -250,14 +235,12 @@ const PropertyMap = ({
         mapRef.current.remove();
       }
       
-      // Clean up global function
       if (window.mapMarkerClicked) {
         delete window.mapMarkerClicked;
       }
     };
   }, [apiLoaded, locations, center, zoom, interactive, currentLocation, mapStyle]);
 
-  // Function to change map style
   const changeMapStyle = (style: 'map' | 'satellite' | 'hybrid') => {
     setMapStyle(style);
     
@@ -272,7 +255,6 @@ const PropertyMap = ({
     }
   };
 
-  // Function to handle location search
   const handleSearch = () => {
     if (!searchQuery.trim()) return;
     
@@ -284,7 +266,6 @@ const PropertyMap = ({
           
           mapRef.current.setView([latLng.lat, latLng.lng], 14);
           
-          // Add a temporary marker
           const searchMarker = window.L.marker([latLng.lat, latLng.lng], {
             icon: window.L.mapquest.icons.marker({
               primaryColor: '#EF4444',
@@ -299,7 +280,6 @@ const PropertyMap = ({
             ${location.adminArea1 || ''}
           `).addTo(mapRef.current).openPopup();
           
-          // Remove after 5 seconds
           setTimeout(() => {
             if (mapRef.current) {
               mapRef.current.removeLayer(searchMarker);
@@ -321,7 +301,6 @@ const PropertyMap = ({
     }
   };
 
-  // Function to get current location
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       toast({
@@ -362,19 +341,15 @@ const PropertyMap = ({
     }
   };
 
-  // Function to view all properties
   const viewAllProperties = () => {
     if (locations.length === 0 || !mapRef.current) return;
     
-    // Create a bounds object
     const bounds = window.L.latLngBounds();
     
-    // Add all location coordinates to the bounds
     locations.forEach(location => {
       bounds.extend([location.lat, location.lng]);
     });
     
-    // Fit the map to these bounds with some padding
     mapRef.current.fitBounds(bounds, {
       padding: [50, 50]
     });
@@ -384,8 +359,7 @@ const PropertyMap = ({
       description: "Showing all available properties on the map.",
     });
   };
-  
-  // Property detail dialog/drawer component based on mobile state
+
   const PropertyDetail = () => {
     if (!selectedLocation) return null;
     
@@ -510,13 +484,11 @@ const PropertyMap = ({
         </div>
       )}
       
-      {/* Property detail dialog/drawer */}
       <PropertyDetail />
     </div>
   );
 };
 
-// Add a global type declaration for the mapMarkerClicked function
 declare global {
   interface Window {
     mapMarkerClicked: (id: number) => void;

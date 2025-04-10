@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { 
@@ -257,7 +256,6 @@ const Community = () => {
                     .filter(post => post.category === "experience")
                     .map((post) => (
                       <Card key={post.id}>
-                        {/* Same card content as above */}
                         <CardHeader className="pb-3">
                           <div className="flex justify-between items-start">
                             <div className="flex items-start space-x-4">
@@ -311,14 +309,12 @@ const Community = () => {
                 </div>
               </TabsContent>
               
-              {/* Similar content for advice and questions tabs */}
               <TabsContent value="advice">
                 <div className="space-y-4">
                   {filteredPosts
                     .filter(post => post.category === "advice")
                     .map((post) => (
                       <Card key={post.id}>
-                        {/* Card content */}
                         <CardHeader className="pb-3">
                           <div className="flex justify-between items-start">
                             <div className="flex items-start space-x-4">
@@ -371,7 +367,6 @@ const Community = () => {
                     .filter(post => post.category === "question")
                     .map((post) => (
                       <Card key={post.id}>
-                        {/* Card content */}
                         <CardHeader className="pb-3">
                           <div className="flex justify-between items-start">
                             <div className="flex items-start space-x-4">
