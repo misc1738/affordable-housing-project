@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React from "react";
 import Navbar from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -17,9 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "@/components/ui/use-toast";
 
 const Community = () => {
   const { t } = useTranslation();
@@ -112,7 +114,7 @@ const Community = () => {
                     </Select>
                   </div>
                   <div>
-                    <Input
+                    <Textarea
                       type="text"
                       placeholder="Write your post here..."
                       value={newPostContent}

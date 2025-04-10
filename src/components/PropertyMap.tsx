@@ -1,8 +1,9 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Map, Building, Navigation, Search, Plus, Minus, Locate, Eye, Map as MapIcon, List, MapPin } from 'lucide-react';
+import { Map, Building, Navigation, Search, Plus, Minus, Locate, Eye, Map as MapIcon, List, MapPin, Layers, Route, Compass, Filter, Satellite } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,8 @@ import {
 } from "@/components/ui/drawer";
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface PropertyLocation {
   id: number;
@@ -31,6 +33,8 @@ interface PropertyLocation {
   lat: number;
   lng: number;
   price: number;
+  isPOI?: boolean;
+  poiType?: string;
 }
 
 interface PropertyMapProps {
@@ -57,11 +61,15 @@ const PropertyMap = ({
   const [selectedLocation, setSelectedLocation] = useState<PropertyLocation | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentLocation, setCurrentLocation] = useState<[number, number] | null>(null);
+  const [showDirections, setShowDirections] = useState(false);
+  const [routeDistance, setRouteDistance] = useState<string | null>(null);
+  const [routeTime, setRouteTime] = useState<string | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const MAPQUEST_API_KEY = "VGAXuFI8Sfc8Mikujxr9Z0paCJ5GEgpe";
   
   const navigate = useNavigate();
   const { toast } = useToast();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!document.getElementById('mapquest-api')) {
@@ -98,38 +106,82 @@ const PropertyMap = ({
           zoomControl: false
         });
         
+        // Create markers for each location
+        const markers: any[] = [];
         locations.forEach(location => {
-          const marker = window.L.marker([location.lat, location.lng], {
-            icon: window.L.mapquest.icons.marker({
+          let markerIcon;
+          
+          if (location.isPOI) {
+            let color = '#3B82F6'; // Default blue
+            
+            switch(location.poiType) {
+              case 'shopping':
+                color = '#F59E0B'; // Orange
+                break;
+              case 'health':
+                color = '#EF4444'; // Red
+                break;
+              case 'education':
+                color = '#8B5CF6'; // Purple
+                break;
+              case 'park':
+                color = '#10B981'; // Green
+                break;
+            }
+            
+            markerIcon = window.L.mapquest.icons.marker({
+              primaryColor: color,
+              secondaryColor: '#1E293B',
+              shadow: true,
+              size: 'sm'
+            });
+          } else {
+            markerIcon = window.L.mapquest.icons.marker({
               primaryColor: '#3B82F6',
               secondaryColor: '#1E40AF',
               shadow: true,
               size: 'md'
-            }),
+            });
+          }
+          
+          const marker = window.L.marker([location.lat, location.lng], {
+            icon: markerIcon,
             draggable: false,
             title: location.title
           });
           
-          marker.bindPopup(`
-            <div class="font-sans">
-              <h3 class="font-bold text-sm mb-1">${location.title}</h3>
-              <p class="text-sm mb-2">KSh ${location.price.toLocaleString()}</p>
-              <button 
-                class="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
-                onclick="window.mapMarkerClicked(${location.id})"
-              >
-                View Details
-              </button>
-            </div>
-          `);
+          if (!location.isPOI) {
+            marker.bindPopup(`
+              <div class="font-sans">
+                <h3 class="font-bold text-sm mb-1">${location.title}</h3>
+                <p class="text-sm mb-2">KSh ${location.price?.toLocaleString() || 'N/A'}</p>
+                <button 
+                  class="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
+                  onclick="window.mapMarkerClicked(${location.id})"
+                >
+                  View Details
+                </button>
+              </div>
+            `);
+          } else {
+            marker.bindPopup(`
+              <div class="font-sans">
+                <h3 class="font-bold text-sm mb-1">${location.title}</h3>
+                <p class="text-sm mb-2">${location.poiType?.charAt(0).toUpperCase() + location.poiType?.slice(1) || ''}</p>
+              </div>
+            `);
+          }
           
           marker.addTo(mapRef.current);
+          markers.push(marker);
           
           marker.on('click', () => {
-            setSelectedLocation(location);
-            
-            if (onMarkerClick) {
-              onMarkerClick(location.id);
+            if (!location.isPOI) {
+              setSelectedLocation(location);
+              
+              if (onMarkerClick) {
+                onMarkerClick(location.id);
+              }
             }
           });
         });
@@ -219,6 +271,13 @@ const PropertyMap = ({
           };
           
           layerControl.addTo(mapRef.current);
+
+          // Cluster markers when many are close together
+          if (locations.length > 10) {
+            const clusterGroup = window.L.markerClusterGroup();
+            markers.forEach(marker => clusterGroup.addLayer(marker));
+            mapRef.current.addLayer(clusterGroup);
+          }
         }
       } catch (error) {
         console.error('Error initializing MapQuest map:', error);
@@ -240,6 +299,101 @@ const PropertyMap = ({
       }
     };
   }, [apiLoaded, locations, center, zoom, interactive, currentLocation, mapStyle]);
+
+  useEffect(() => {
+    if (showDirections && selectedLocation && currentLocation && mapRef.current && window.L) {
+      try {
+        // Clear existing routes
+        if (mapRef.current.directions) {
+          mapRef.current.directions.setRoute(null);
+        }
+
+        // Initialize directions if not already done
+        if (!mapRef.current.directions) {
+          mapRef.current.directions = window.L.mapquest.directions();
+        }
+
+        // Get directions
+        window.L.mapquest.directions().route({
+          start: `${currentLocation[1]},${currentLocation[0]}`,
+          end: `${selectedLocation.lat},${selectedLocation.lng}`,
+          options: {
+            enhancedNarrative: true,
+            maxRoutes: 1,
+            timeOverage: 25
+          }
+        }, function(err, response) {
+          if (err) {
+            console.error('Error getting directions:', err);
+            toast({
+              title: "Directions Error",
+              description: "Could not calculate directions. Please try again.",
+              variant: "destructive"
+            });
+            setShowDirections(false);
+            return;
+          }
+
+          // Create the route
+          window.L.mapquest.directions().setLayerOptions({
+            startMarker: {
+              icon: window.L.mapquest.icons.marker({
+                primaryColor: '#10B981',
+                secondaryColor: '#065F46',
+                shadow: true,
+                size: 'sm'
+              }),
+              draggable: false,
+              title: 'Your Location'
+            },
+            endMarker: {
+              icon: window.L.mapquest.icons.marker({
+                primaryColor: '#3B82F6',
+                secondaryColor: '#1E40AF',
+                shadow: true,
+                size: 'sm'
+              }),
+              title: selectedLocation.title
+            },
+            routeRibbon: {
+              color: '#4338CA',
+              opacity: 0.7,
+              showTraffic: true
+            }
+          });
+          
+          window.L.mapquest.directions().route({
+            start: `${currentLocation[1]},${currentLocation[0]}`,
+            end: `${selectedLocation.lat},${selectedLocation.lng}`,
+          });
+
+          // Extract route information
+          if (response.route && response.route.distance && response.route.formattedTime) {
+            setRouteDistance(response.route.distance.toFixed(1) + ' km');
+            setRouteTime(response.route.formattedTime);
+            
+            toast({
+              title: "Directions Ready",
+              description: `Distance: ${response.route.distance.toFixed(1)} km, Time: ${response.route.formattedTime}`,
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Error setting up directions:', error);
+        toast({
+          title: "Directions Error",
+          description: "Could not calculate directions. Please try again.",
+          variant: "destructive"
+        });
+        setShowDirections(false);
+      }
+    } else if (!showDirections && mapRef.current && mapRef.current.directions) {
+      // Clear directions when showDirections is toggled off
+      mapRef.current.directions.setRoute(null);
+      setRouteDistance(null);
+      setRouteTime(null);
+    }
+  }, [showDirections, selectedLocation, currentLocation]);
 
   const changeMapStyle = (style: 'map' | 'satellite' | 'hybrid') => {
     setMapStyle(style);
@@ -316,6 +470,17 @@ const PropertyMap = ({
           if (mapRef.current) {
             mapRef.current.setView([latitude, longitude], 14);
             
+            const userMarker = window.L.marker([latitude, longitude], {
+              icon: window.L.mapquest.icons.marker({
+                primaryColor: '#10B981',
+                secondaryColor: '#065F46',
+                symbol: '•',
+                shadow: true
+              })
+            });
+            
+            userMarker.bindPopup('<b>Your Location</b>').addTo(mapRef.current).openPopup();
+            
             toast({
               title: "Location Found",
               description: "The map has been centered to your current location.",
@@ -360,6 +525,52 @@ const PropertyMap = ({
     });
   };
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      mapContainer.current?.requestFullscreen().catch(err => {
+        toast({
+          title: "Fullscreen Error",
+          description: "Could not enter fullscreen mode: " + err.message,
+          variant: "destructive"
+        });
+      });
+      
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  const toggleDirections = () => {
+    if (!currentLocation) {
+      toast({
+        title: "Location Required",
+        description: "Please get your current location first to show directions.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (!selectedLocation) {
+      toast({
+        title: "Property Selection Required",
+        description: "Please select a property first to show directions.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setShowDirections(prev => !prev);
+    
+    if (showDirections) {
+      toast({
+        title: "Directions Removed",
+        description: "Route directions have been removed from the map.",
+      });
+    }
+  };
+
   const PropertyDetail = () => {
     if (!selectedLocation) return null;
     
@@ -367,7 +578,7 @@ const PropertyMap = ({
       <div className="space-y-4">
         <h3 className="text-xl font-semibold">{selectedLocation.title}</h3>
         <p className="text-2xl font-bold text-housing-800">
-          KSh {selectedLocation.price.toLocaleString()}/mo
+          KSh {selectedLocation.price?.toLocaleString() || 'N/A'}/mo
         </p>
         <div className="flex items-center space-x-2 text-housing-600">
           <MapPin className="w-4 h-4" />
@@ -376,14 +587,33 @@ const PropertyMap = ({
             Lng: {selectedLocation.lng.toFixed(4)}
           </span>
         </div>
-        <div className="pt-4">
+        <div className="grid grid-cols-2 gap-2">
           <Button 
-            className="w-full"
             onClick={() => navigate(`/property/${selectedLocation.id}`)}
+            variant="default"
           >
             <Eye className="w-4 h-4 mr-2" />
-            View Property Details
+            View Details
           </Button>
+          
+          <Button
+            onClick={toggleDirections}
+            variant={showDirections ? "destructive" : "outline"}
+            disabled={!currentLocation}
+          >
+            <Route className="w-4 h-4 mr-2" />
+            {showDirections ? "Hide Route" : "Get Directions"}
+          </Button>
+          
+          {showDirections && routeDistance && routeTime && (
+            <div className="col-span-2 bg-housing-50 p-3 rounded-md text-sm">
+              <p className="font-medium">Route Information:</p>
+              <div className="flex justify-between mt-1">
+                <span>Distance: {routeDistance}</span>
+                <span>Time: {routeTime}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -446,6 +676,68 @@ const PropertyMap = ({
           </div>
           
           <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-10">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Map Tools</span>
+                  <span className="sm:hidden">Tools</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-2">
+                <div className="grid grid-cols-1 gap-1">
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start h-9"
+                    onClick={getCurrentLocation}
+                  >
+                    <Locate className="h-4 w-4 mr-2" />
+                    My Location
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start h-9"
+                    onClick={viewAllProperties}
+                  >
+                    <MapIcon className="h-4 w-4 mr-2" />
+                    View All Properties
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start h-9"
+                    onClick={() => changeMapStyle('map')}
+                  >
+                    <Map className="h-4 w-4 mr-2" />
+                    Standard Map
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start h-9"
+                    onClick={() => changeMapStyle('satellite')}
+                  >
+                    <Satellite className="h-4 w-4 mr-2" />
+                    Satellite View
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start h-9"
+                    onClick={() => changeMapStyle('hybrid')}
+                  >
+                    <Layers className="h-4 w-4 mr-2" />
+                    Hybrid View
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start h-9"
+                    onClick={toggleFullscreen}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+                    {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            
             <Button 
               variant="outline" 
               className="flex-1 sm:flex-none"
@@ -454,16 +746,6 @@ const PropertyMap = ({
               <Locate className="h-4 w-4 mr-2" />
               <span className="hidden sm:inline">My Location</span>
               <span className="sm:hidden">Locate</span>
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              className="flex-1 sm:flex-none"
-              onClick={viewAllProperties}
-            >
-              <MapIcon className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">View All</span>
-              <span className="sm:hidden">All</span>
             </Button>
           </div>
         </div>
@@ -480,6 +762,27 @@ const PropertyMap = ({
           <div className="flex flex-col items-center">
             <Map className="animate-pulse h-8 w-8 text-housing-500 mb-2" />
             <p className="text-housing-600">Loading map...</p>
+          </div>
+        </div>
+      )}
+      
+      {showDirections && selectedLocation && currentLocation && (
+        <div className="bg-white p-3 rounded border mt-2 text-sm">
+          <div className="flex justify-between items-center">
+            <h4 className="font-semibold">Directions</h4>
+            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={toggleDirections}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            <div className="flex items-center text-housing-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>Distance: {routeDistance || '...'}</span>
+            </div>
+            <div className="flex items-center text-housing-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Time: {routeTime || '...'}</span>
+            </div>
           </div>
         </div>
       )}
