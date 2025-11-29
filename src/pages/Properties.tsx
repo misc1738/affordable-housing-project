@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
-import PropertyCard from "@/components/PropertyCard";
+import LuxuryPropertyCard, { LuxuryProperty } from "@/components/LuxuryPropertyCard";
 import PropertyFilters, { PropertyFiltersState } from "@/components/PropertyFilters";
 import PropertyMap from "@/components/PropertyMap";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Grid, List, Map, Filter, X } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { motion } from "framer-motion";
+import FadeIn from "@/components/animations/FadeIn";
+import BouncingText from "@/components/animations/BouncingText";
 import {
   Drawer,
   DrawerClose,
@@ -20,147 +23,133 @@ import {
 } from "@/components/ui/drawer";
 import { useMobile } from "@/hooks/use-mobile";
 
-const properties = [
+const properties: LuxuryProperty[] = [
   {
     id: 1,
-    title: "Modern Apartment in Kilimani",
-    address: "Kirichwa Road, Kilimani, Nairobi",
-    price: 75000,
-    bedrooms: 2,
-    type: "Apartment",
-    imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2",
+    title: "The Glass House",
+    location: "Karen, Nairobi",
+    price: 125000000,
+    image: "/images/luxury-house-1.png",
+    beds: 5,
+    baths: 6,
+    sqft: "6,500",
+    type: "Villa"
   },
   {
     id: 2,
-    title: "Cozy Studio in Westlands",
-    address: "Waiyaki Way, Westlands, Nairobi",
-    price: 45000,
-    bedrooms: 1,
-    type: "Studio",
-    imageUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+    title: "Modern Oasis",
+    location: "Muthaiga, Nairobi",
+    price: 89000000,
+    image: "/images/luxury-house-2.png",
+    beds: 4,
+    baths: 5,
+    sqft: "4,200",
+    type: "Mansion"
   },
   {
     id: 3,
-    title: "Family Home in Karen",
-    address: "Karen Road, Karen, Nairobi",
-    price: 120000,
-    bedrooms: 3,
-    type: "House",
-    imageUrl: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
+    title: "Hilltop Estate",
+    location: "Runda, Nairobi",
+    price: 250000000,
+    image: "/images/luxury-house-3.png",
+    beds: 8,
+    baths: 10,
+    sqft: "12,000",
+    type: "Estate"
   },
   {
     id: 4,
-    title: "Spacious Townhouse in Lavington",
-    address: "James Gichuru Road, Lavington, Nairobi",
-    price: 95000,
-    bedrooms: 3,
-    type: "Townhouse",
-    imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750",
+    title: "Skyline Penthouse",
+    location: "Westlands, Nairobi",
+    price: 180000000,
+    image: "/images/westlands_penthouse.png",
+    beds: 3,
+    baths: 4,
+    sqft: "4,500",
+    type: "Penthouse"
   },
   {
     id: 5,
-    title: "Elegant Apartment in Riverside",
-    address: "Riverside Drive, Nairobi",
-    price: 85000,
-    bedrooms: 2,
-    type: "Apartment",
-    imageUrl: "https://images.unsplash.com/photo-1493809842364-78817add7ffb",
+    title: "Swahili Villa",
+    location: "Lamu, Coast",
+    price: 95000000,
+    image: "/images/coastal_villa.png",
+    beds: 6,
+    baths: 7,
+    sqft: "5,800",
+    type: "Villa"
   },
   {
     id: 6,
-    title: "Budget Studio in Ngara",
-    address: "Ngara Road, Ngara, Nairobi",
-    price: 25000,
-    bedrooms: 1,
-    type: "Studio",
-    imageUrl: "https://images.unsplash.com/photo-1487700160041-babef9c3cb55",
-  },
-  {
-    id: 7,
-    title: "Affordable Housing in Eastlands",
-    address: "Jogoo Road, Eastlands, Nairobi",
-    price: 35000,
-    bedrooms: 2,
-    type: "Apartment",
-    imageUrl: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267",
-  },
-  {
-    id: 8,
-    title: "AHP Residence in Pangani",
-    address: "Pangani Estate, Nairobi",
-    price: 42000,
-    bedrooms: 2,
-    type: "Apartment",
-    imageUrl: "https://images.unsplash.com/photo-1574362848149-11496d93a7c7",
-  },
+    title: "Riverside Retreat",
+    location: "Riverside, Nairobi",
+    price: 65000000,
+    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80",
+    beds: 3,
+    baths: 3,
+    sqft: "3,200",
+    type: "Apartment"
+  }
 ];
 
 const propertyLocations = [
-  { id: 1, title: "Modern Apartment in Kilimani", lat: -1.2921, lng: 36.8219, price: 75000 },
-  { id: 2, title: "Cozy Studio in Westlands", lat: -1.2673, lng: 36.8061, price: 45000 },
-  { id: 3, title: "Family Home in Karen", lat: -1.3184, lng: 36.7111, price: 120000 },
-  { id: 4, title: "Spacious Townhouse in Lavington", lat: -1.2773, lng: 36.7752, price: 95000 },
-  { id: 5, title: "Elegant Apartment in Riverside", lat: -1.2740, lng: 36.8058, price: 85000 },
-  { id: 6, title: "Budget Studio in Ngara", lat: -1.2762, lng: 36.8315, price: 25000 },
-  { id: 7, title: "Affordable Housing in Eastlands", lat: -1.2855, lng: 36.8601, price: 35000 },
-  { id: 8, title: "AHP Residence in Pangani", lat: -1.2716, lng: 36.8365, price: 42000 },
+  { id: 1, title: "The Glass House", lat: -1.3184, lng: 36.7111, price: 125000000 },
+  { id: 2, title: "Modern Oasis", lat: -1.2673, lng: 36.8061, price: 89000000 },
+  { id: 3, title: "Hilltop Estate", lat: -1.2184, lng: 36.8111, price: 250000000 },
+  { id: 4, title: "Skyline Penthouse", lat: -1.2650, lng: 36.8000, price: 180000000 },
+  { id: 5, title: "Swahili Villa", lat: -2.2696, lng: 40.9006, price: 95000000 },
+  { id: 6, title: "Riverside Retreat", lat: -1.2740, lng: 36.8058, price: 65000000 },
 ];
 
 const fetchProperties = async (filters?: Partial<PropertyFiltersState>) => {
   return new Promise((resolve) => {
     setTimeout(() => {
       let filteredProperties = [...properties];
-      
+
       if (filters) {
         if (filters.priceRange) {
           const [minPrice, maxPrice] = filters.priceRange.split('-').map(Number);
           if (!isNaN(minPrice) && !isNaN(maxPrice)) {
             filteredProperties = filteredProperties.filter(
-              property => property.price >= minPrice * 1000 && property.price <= maxPrice * 1000
+              property => (property.price as number) >= minPrice * 1000000 && (property.price as number) <= maxPrice * 1000000
             );
           } else if (filters.priceRange.includes('+')) {
             const minPrice = parseInt(filters.priceRange);
             filteredProperties = filteredProperties.filter(
-              property => property.price >= minPrice * 1000
+              property => (property.price as number) >= minPrice * 1000000
             );
           }
         }
-        
+
         if (filters.bedrooms && filters.bedrooms !== 'any') {
-          if (filters.bedrooms === 'studio') {
-            filteredProperties = filteredProperties.filter(
-              property => property.type === 'Studio'
-            );
-          } else {
-            const bedroomCount = parseInt(filters.bedrooms);
-            if (!isNaN(bedroomCount)) {
-              if (filters.bedrooms === '3') {
-                filteredProperties = filteredProperties.filter(
-                  property => property.bedrooms >= 3
-                );
-              } else {
-                filteredProperties = filteredProperties.filter(
-                  property => property.bedrooms === bedroomCount
-                );
-              }
+          const bedroomCount = parseInt(filters.bedrooms);
+          if (!isNaN(bedroomCount)) {
+            if (filters.bedrooms === '5+') {
+              filteredProperties = filteredProperties.filter(
+                property => property.beds >= 5
+              );
+            } else {
+              filteredProperties = filteredProperties.filter(
+                property => property.beds === bedroomCount
+              );
             }
           }
         }
-        
+
         if (filters.propertyType && filters.propertyType !== 'any') {
           filteredProperties = filteredProperties.filter(
-            property => property.type.toLowerCase() === filters.propertyType.toLowerCase()
+            property => property.type?.toLowerCase() === filters.propertyType?.toLowerCase()
           );
         }
       }
-      
+
       resolve(filteredProperties);
     }, 500);
   });
 };
 
 const getFilteredLocations = (filteredProperties: any[]) => {
-  return propertyLocations.filter(location => 
+  return propertyLocations.filter(location =>
     filteredProperties.some(property => property.id === location.id)
   );
 };
@@ -173,25 +162,21 @@ const Properties = () => {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const { toast } = useToast();
   const isMobile = useMobile();
-  
+
   useEffect(() => {
     const initialFilters: Partial<PropertyFiltersState> = {};
-    
+
     const priceParam = searchParams.get("price");
     const bedroomsParam = searchParams.get("bedrooms");
     const propertyTypeParam = searchParams.get("type");
-    const eligibilityParam = searchParams.get("eligibility");
-    const incomeTypeParam = searchParams.get("income");
-    
+
     if (priceParam) initialFilters.priceRange = priceParam;
     if (bedroomsParam) initialFilters.bedrooms = bedroomsParam;
     if (propertyTypeParam) initialFilters.propertyType = propertyTypeParam;
-    if (eligibilityParam) initialFilters.eligibility = eligibilityParam;
-    if (incomeTypeParam) initialFilters.incomeType = incomeTypeParam;
-    
+
     setFilters(initialFilters);
   }, [searchParams]);
-  
+
   const { data: propertiesData, isLoading, error, refetch } = useQuery({
     queryKey: ["properties", filters],
     queryFn: () => fetchProperties(filters),
@@ -203,44 +188,52 @@ const Properties = () => {
     refetch();
     setIsFilterDrawerOpen(false);
   };
-  
+
   const filteredLocations = getFilteredLocations(propertiesData as any[]);
-  
+
   const handleMarkerClick = (id: number) => {
     setSelectedPropertyId(id);
     if (viewMode !== "map") {
       setViewMode("map");
     }
-    
-    if (viewMode === "list") {
-      const element = document.getElementById(`property-${id}`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
   };
 
   return (
-    <div className="min-h-screen bg-housing-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      
-      <div className="pt-24 pb-16">
-        <div className="container mx-auto px-4">
-          <div className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-display font-bold text-housing-800 mb-4">
-              Find Your Affordable Home in Kenya
-            </h1>
-            <p className="text-housing-600 max-w-3xl">
-              Browse through our curated collection of affordable housing options across Kenya. 
-              Filter by location, price, and amenities to find your perfect match.
+
+      {/* Properties Hero */}
+      <section className="relative h-[40vh] min-h-[400px] flex items-center justify-center overflow-hidden bg-black">
+        <div className="absolute inset-0 z-0">
+          <motion.img
+            initial={{ scale: 1.1, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            src="/images/hero_luxury_nairobi.png"
+            alt="Luxury Properties"
+            className="w-full h-full object-cover opacity-60"
+          />
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+
+        <div className="container relative z-10 px-4 text-center">
+          <FadeIn>
+            <BouncingText text="Our Exclusive Portfolio" className="text-4xl md:text-6xl font-display font-bold text-white mb-4" />
+            <p className="text-xl text-white/90 max-w-2xl mx-auto font-light">
+              Discover a curated selection of Kenya's most prestigious addresses.
             </p>
-          </div>
-          
+          </FadeIn>
+        </div>
+      </section>
+
+      <div className="py-16">
+        <div className="container mx-auto px-4">
+
           {isMobile ? (
             <div className="mb-6">
               <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
                 <DrawerTrigger asChild>
-                  <Button className="w-full flex items-center justify-center">
+                  <Button className="w-full flex items-center justify-center rounded-full h-12">
                     <Filter className="w-4 h-4 mr-2" />
                     {Object.keys(filters).length > 0 ? "Filters Applied" : "Filter Properties"}
                   </Button>
@@ -251,7 +244,7 @@ const Properties = () => {
                     <DrawerDescription>Customize your property search</DrawerDescription>
                   </DrawerHeader>
                   <div className="px-4">
-                    <PropertyFilters 
+                    <PropertyFilters
                       initialFilters={filters}
                       onApplyFilters={handleApplyFilters}
                     />
@@ -265,22 +258,24 @@ const Properties = () => {
               </Drawer>
             </div>
           ) : (
-            <div className="mb-8">
-              <PropertyFilters 
-                initialFilters={filters}
-                onApplyFilters={handleApplyFilters}
-              />
+            <div className="mb-12">
+              <div className="bg-white/50 backdrop-blur-md border border-white/20 p-6 rounded-[2rem] shadow-sm">
+                <PropertyFilters
+                  initialFilters={filters}
+                  onApplyFilters={handleApplyFilters}
+                />
+              </div>
             </div>
           )}
-          
-          <div className="flex flex-wrap justify-between items-center mb-6">
+
+          <div className="flex flex-wrap justify-between items-center mb-8">
             <div>
-              <p className="text-housing-600">
-                Showing <span className="font-semibold">{(propertiesData as any[])?.length || 0}</span> properties
+              <p className="text-muted-foreground">
+                Showing <span className="font-semibold text-foreground">{(propertiesData as any[])?.length || 0}</span> properties
                 {Object.keys(filters).length > 0 && (
-                  <Button 
-                    variant="ghost" 
-                    className="ml-2 h-8 px-2 py-1 text-sm" 
+                  <Button
+                    variant="ghost"
+                    className="ml-2 h-8 px-2 py-1 text-sm hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => {
                       setFilters({});
                       window.history.replaceState({}, '', `${window.location.pathname}`);
@@ -297,52 +292,51 @@ const Properties = () => {
                 )}
               </p>
             </div>
-            
-            <div className="flex items-center space-x-2 bg-white p-1 rounded-md border border-housing-200">
-              <Button 
-                variant={viewMode === "grid" ? "default" : "ghost"} 
+
+            <div className="flex items-center space-x-2 bg-secondary/30 p-1 rounded-full border border-white/20">
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("grid")}
-                className="flex items-center"
+                className={`flex items-center rounded-full ${viewMode === "grid" ? "bg-white text-primary shadow-sm" : "hover:bg-white/50"}`}
               >
                 <Grid className="h-4 w-4 mr-1" />
                 Grid
               </Button>
-              <Button 
-                variant={viewMode === "list" ? "default" : "ghost"} 
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("list")}
-                className="flex items-center"
+                className={`flex items-center rounded-full ${viewMode === "list" ? "bg-white text-primary shadow-sm" : "hover:bg-white/50"}`}
               >
                 <List className="h-4 w-4 mr-1" />
                 List
               </Button>
-              <Button 
-                variant={viewMode === "map" ? "default" : "ghost"} 
+              <Button
+                variant={viewMode === "map" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode("map")}
-                className="flex items-center"
+                className={`flex items-center rounded-full ${viewMode === "map" ? "bg-white text-primary shadow-sm" : "hover:bg-white/50"}`}
               >
                 <Map className="h-4 w-4 mr-1" />
                 Map
               </Button>
             </div>
           </div>
-          
+
           {isLoading ? (
-            <div className="text-center py-12">
+            <div className="text-center py-20">
               <div className="animate-pulse flex flex-col items-center">
-                <div className="w-10 h-10 bg-housing-300 rounded-full mb-4"></div>
-                <div className="h-4 bg-housing-200 rounded w-32 mb-2"></div>
-                <div className="h-3 bg-housing-200 rounded w-48"></div>
+                <div className="w-12 h-12 bg-secondary rounded-full mb-4"></div>
+                <div className="h-4 bg-secondary rounded w-32 mb-2"></div>
+                <div className="h-3 bg-secondary rounded w-48"></div>
               </div>
             </div>
           ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-red-500">Error loading properties. Please try again.</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
+            <div className="text-center py-20">
+              <p className="text-destructive mb-4">Error loading properties. Please try again.</p>
+              <Button
+                variant="outline"
                 onClick={() => refetch()}
               >
                 Retry
@@ -351,17 +345,18 @@ const Properties = () => {
           ) : (
             <>
               {(propertiesData as any[])?.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-housing-200">
-                  <h3 className="text-lg font-semibold mb-2">No properties found</h3>
-                  <p className="text-housing-600 mb-4">
+                <div className="text-center py-20 bg-secondary/10 rounded-[2rem] border border-dashed border-secondary">
+                  <h3 className="text-xl font-display font-bold mb-2">No properties found</h3>
+                  <p className="text-muted-foreground mb-6">
                     No properties match your current filter criteria. Try adjusting your filters.
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setFilters({});
                       window.history.replaceState({}, '', `${window.location.pathname}`);
                       refetch();
                     }}
+                    className="rounded-full"
                   >
                     Reset All Filters
                   </Button>
@@ -370,51 +365,22 @@ const Properties = () => {
                 <>
                   {viewMode === "grid" && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                      {(propertiesData as any[]).map((property: any) => (
-                        <PropertyCard key={property.id} {...property} />
+                      {(propertiesData as any[])?.map((property: any, index: number) => (
+                        <LuxuryPropertyCard key={property.id} property={property} index={index} />
                       ))}
                     </div>
                   )}
-                  
+
                   {viewMode === "list" && (
-                    <div className="space-y-4">
-                      {(propertiesData as any[]).map((property: any) => (
-                        <div 
-                          key={property.id} 
-                          id={`property-${property.id}`}
-                          className={`flex flex-col md:flex-row bg-white rounded-lg overflow-hidden border transition-all ${
-                            property.id === selectedPropertyId ? 'border-housing-500 ring-2 ring-housing-200' : 'border-housing-200'
-                          } shadow-sm`}
-                        >
-                          <div className="md:w-1/3 h-48 md:h-auto">
-                            <img 
-                              src={property.imageUrl} 
-                              alt={property.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <div className="p-6 md:w-2/3 flex flex-col justify-between">
-                            <div>
-                              <h3 className="text-lg font-semibold text-housing-800 mb-2">{property.title}</h3>
-                              <p className="text-housing-600 mb-4">{property.address}</p>
-                              <div className="flex items-center space-x-4 text-housing-600">
-                                <span>{property.bedrooms} Bedroom{property.bedrooms !== 1 ? 's' : ''}</span>
-                                <span>•</span>
-                                <span>{property.type}</span>
-                              </div>
-                            </div>
-                            <div className="flex justify-between items-center mt-4">
-                              <p className="text-xl font-bold text-housing-800">KES {property.price.toLocaleString()}/mo</p>
-                              <Button onClick={() => window.location.href = `/property/${property.id}`}>View Details</Button>
-                            </div>
-                          </div>
-                        </div>
+                    <div className="space-y-6">
+                      {(propertiesData as any[])?.map((property: any, index: number) => (
+                        <LuxuryPropertyCard key={property.id} property={property} index={index} className="h-auto md:h-[300px] flex-row" />
                       ))}
                     </div>
                   )}
-                  
+
                   {viewMode === "map" && (
-                    <div className="bg-white rounded-lg p-6 shadow-sm border border-housing-200">
+                    <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-white/20 overflow-hidden">
                       <PropertyMap
                         locations={filteredLocations}
                         height="600px"
@@ -422,7 +388,7 @@ const Properties = () => {
                         interactive={true}
                         onMarkerClick={handleMarkerClick}
                       />
-                      <div className="mt-4 text-sm text-housing-600">
+                      <div className="mt-4 text-sm text-muted-foreground text-center">
                         <p>Click on map markers to view property details. Use zoom controls to explore different areas.</p>
                       </div>
                     </div>
@@ -433,53 +399,53 @@ const Properties = () => {
           )}
         </div>
       </div>
-      
-      <footer className="bg-housing-800 text-white py-12">
+
+      <footer className="bg-black text-white py-16">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div>
-              <h3 className="font-display text-xl font-bold mb-4">Affordable Abode</h3>
-              <p className="text-housing-300 text-sm">
-                Connecting Kenyans with affordable housing options tailored to their needs and budget.
+              <h3 className="font-display text-2xl font-bold mb-6">Affordable Abode</h3>
+              <p className="text-white/60 text-sm leading-relaxed">
+                Connecting discerning clients with Kenya's most exceptional properties. Experience the pinnacle of modern living.
               </p>
             </div>
-            
+
             <div>
-              <h4 className="font-semibold mb-3 text-white/90">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-housing-300">
+              <h4 className="font-semibold mb-6 text-white tracking-wide uppercase text-sm">Quick Links</h4>
+              <ul className="space-y-3 text-sm text-white/60">
                 <li><a href="/" className="hover:text-white transition-colors">Home</a></li>
                 <li><a href="/properties" className="hover:text-white transition-colors">Search Properties</a></li>
                 <li><a href="/apply" className="hover:text-white transition-colors">Apply for Housing</a></li>
                 <li><a href="/resources" className="hover:text-white transition-colors">Resources</a></li>
               </ul>
             </div>
-            
+
             <div>
-              <h4 className="font-semibold mb-3 text-white/90">Contact Us</h4>
-              <ul className="space-y-2 text-sm text-housing-300">
+              <h4 className="font-semibold mb-6 text-white tracking-wide uppercase text-sm">Contact Us</h4>
+              <ul className="space-y-3 text-sm text-white/60">
                 <li>support@affordableabode.co.ke</li>
                 <li>+254 712 345 678</li>
                 <li>Mon-Fri: 9am - 5pm EAT</li>
               </ul>
             </div>
-            
+
             <div>
-              <h4 className="font-semibold mb-3 text-white/90">Legal</h4>
-              <ul className="space-y-2 text-sm text-housing-300">
+              <h4 className="font-semibold mb-6 text-white tracking-wide uppercase text-sm">Legal</h4>
+              <ul className="space-y-3 text-sm text-white/60">
                 <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
               </ul>
             </div>
           </div>
-          
-          <div className="border-t border-housing-700 pt-8 text-center">
-            <p className="text-housing-400 text-sm">
+
+          <div className="border-t border-white/10 pt-8 text-center">
+            <p className="text-white/40 text-sm">
               © {new Date().getFullYear()} Affordable Abode Kenya. All rights reserved.
             </p>
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 };
 

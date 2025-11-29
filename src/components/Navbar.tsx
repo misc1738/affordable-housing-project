@@ -1,148 +1,135 @@
-
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X, Home, Info, Phone, User, Search, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Bell, Menu, Search, User } from "lucide-react";
-import LanguageSwitcher from "./LanguageSwitcher";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const { t } = useTranslation();
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      setScrolled(window.scrollY > 20);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const navLinks = [
+    { name: "Home", path: "/", icon: Home },
+    { name: "Explore", path: "/properties", icon: Search },
+    { name: "Locations", path: "/neighborhoods", icon: MapPin },
+    { name: "Contact", path: "/contact", icon: Phone },
+  ];
+
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 ${
-        isScrolled
-          ? "bg-white/90 backdrop-blur-md shadow-sm"
-          : "bg-transparent"
-      } transition-all duration-300`}
+      className={cn(
+        "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 ease-in-out",
+        scrolled ? "glass-nav py-4" : "bg-transparent py-6"
+      )}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="flex items-center">
-              <span className="font-display text-xl font-bold text-housing-800">
-                {t('app_name')}
-              </span>
-            </Link>
-          </div>
+      <div className="container mx-auto px-4 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 group">
+          <motion.div
+            whileHover={{ rotate: 45 }}
+            transition={{ duration: 0.5 }}
+            className="w-10 h-10 border-2 border-primary rounded-full flex items-center justify-center text-primary font-bold text-xl shadow-lg bg-white/10 backdrop-blur-md"
+          >
+            M
+          </motion.div>
+          <span className={cn("text-2xl font-display font-bold tracking-tight transition-colors", scrolled ? "text-foreground" : "text-white")}>
+            Affordable Abode
+          </span>
+        </Link>
 
-          <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-housing-700 hover:text-housing-900">
-              {t('nav_home')}
-            </Link>
-            <Link to="/properties" className="text-housing-700 hover:text-housing-900">
-              {t('nav_search')}
-            </Link>
-            <Link to="/apply" className="text-housing-700 hover:text-housing-900">
-              {t('nav_apply')}
-            </Link>
-            <Link to="/resources" className="text-housing-700 hover:text-housing-900">
-              {t('nav_resources')}
-            </Link>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <LanguageSwitcher />
-            
-            <div className="hidden md:flex items-center space-x-2">
-              <Button variant="ghost" size="icon" className="text-housing-700">
-                <Bell className="h-5 w-5" />
-              </Button>
-              <Link to="/signin">
-                <Button variant="outline" className="flex items-center">
-                  <User className="mr-2 h-4 w-4" />
-                  {t('nav_signin')}
-                </Button>
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-1">
+          <div className="glass-card px-2 py-1.5 rounded-full flex items-center gap-1 mr-4 bg-white/10 border-white/20">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all relative",
+                  location.pathname === link.path
+                    ? "text-foreground bg-white shadow-sm"
+                    : scrolled ? "text-foreground/80 hover:bg-black/5" : "text-white/90 hover:bg-white/10"
+                )}
+              >
+                {link.name}
               </Link>
-            </div>
+            ))}
+          </div>
 
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="md:hidden text-housing-700"
-                >
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <SheetHeader>
-                  <SheetTitle className="font-display text-housing-800">
-                    {t('app_name')}
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="py-6">
-                  <div className="relative w-full mb-6">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-housing-400" />
-                    <Input
-                      placeholder={t('hero_search_placeholder')}
-                      className="pl-8"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <Link
-                      to="/"
-                      className="block py-2 px-3 rounded-md hover:bg-housing-50 text-housing-800"
-                    >
-                      {t('nav_home')}
-                    </Link>
-                    <Link
-                      to="/properties"
-                      className="block py-2 px-3 rounded-md hover:bg-housing-50 text-housing-800"
-                    >
-                      {t('nav_search')}
-                    </Link>
-                    <Link
-                      to="/apply"
-                      className="block py-2 px-3 rounded-md hover:bg-housing-50 text-housing-800"
-                    >
-                      {t('nav_apply')}
-                    </Link>
-                    <Link
-                      to="/resources"
-                      className="block py-2 px-3 rounded-md hover:bg-housing-50 text-housing-800"
-                    >
-                      {t('nav_resources')}
-                    </Link>
-                  </div>
-                  <div className="pt-6 mt-6 border-t border-gray-200">
-                    <Link to="/signin">
-                      <Button className="w-full mb-2 bg-housing-800 hover:bg-housing-900">
-                        {t('nav_signin')}
-                      </Button>
-                    </Link>
-                    <Link to="/signup">
-                      <Button variant="outline" className="w-full">
-                        {t('nav_signup')}
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+          <div className="flex items-center gap-3">
+            <Button size="icon" variant="ghost" className="rounded-full w-10 h-10 bg-white/10 hover:bg-white/20 text-white border border-white/20">
+              <Search className="w-4 h-4" />
+            </Button>
+            <Button size="icon" variant="ghost" className="rounded-full w-10 h-10 bg-white/10 hover:bg-white/20 text-white border border-white/20">
+              <User className="w-4 h-4" />
+            </Button>
+            <Link to="/properties">
+              <Button className="rounded-full bg-primary hover:bg-primary/90 text-white px-6 shadow-lg hover:shadow-primary/25 transition-all">
+                Listings
+              </Button>
+            </Link>
           </div>
         </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden p-2 text-foreground"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X /> : <Menu className={scrolled ? "text-foreground" : "text-white"} />}
+        </button>
       </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-lg border-b border-border/40 overflow-hidden"
+          >
+            <div className="p-4 flex flex-col gap-4">
+              {navLinks.map((link, index) => (
+                <motion.div
+                  key={link.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Link
+                    to={link.path}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <link.icon className="w-5 h-5 text-primary" />
+                    <span className="font-medium">{link.name}</span>
+                  </Link>
+                </motion.div>
+              ))}
+              <div className="h-px bg-border my-2" />
+              <Link to="/signin" onClick={() => setIsOpen(false)}>
+                <Button variant="outline" className="w-full justify-start gap-2 rounded-full">
+                  <User className="w-4 h-4" />
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/properties" onClick={() => setIsOpen(false)}>
+                <Button className="w-full rounded-full">View Listings</Button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };

@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -22,39 +23,51 @@ import News from "./pages/News";
 import PreferenceQuiz from "./pages/PreferenceQuiz";
 import MapExplorer from "./pages/MapExplorer";
 import ScheduleViewing from "./pages/ScheduleViewing";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProperties from "./pages/admin/AdminProperties";
+import AdminBookings from "./pages/admin/AdminBookings";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/property/:id" element={<PropertyDetails />} />
-          <Route path="/schedule-viewing/:id" element={<ScheduleViewing />} />
-          <Route path="/dashboard" element={<UserDashboard />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/apply" element={<Apply />} />
-          <Route path="/properties" element={<Properties />} />
-          <Route path="/applications" element={<Applications />} />
-          <Route path="/documents" element={<DocumentChecklist />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/timeline" element={<HousingTimeline />} />
-          <Route path="/neighborhoods" element={<Neighborhood />} />
-          <Route path="/news" element={<News />} />
-          <Route path="/quiz" element={<PreferenceQuiz />} />
-          <Route path="/map-explorer" element={<MapExplorer />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <BrowserRouter>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<Index />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/property/:id" element={<PropertyDetails />} />
+        <Route path="/schedule-viewing/:id" element={<ScheduleViewing />} />
+        <Route path="/dashboard" element={<UserDashboard />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/apply" element={<Apply />} />
+        <Route path="/properties" element={<Properties />} />
+        <Route path="/applications" element={<Applications />} />
+        <Route path="/documents" element={<DocumentChecklist />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/timeline" element={<HousingTimeline />} />
+        <Route path="/neighborhoods" element={<Neighborhood />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/quiz" element={<PreferenceQuiz />} />
+        <Route path="/map-explorer" element={<MapExplorer />} />
+      </Route>
+
+      {/* Admin Routes */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="properties" element={<AdminProperties />} />
+        <Route path="bookings" element={<AdminBookings />} />
+        <Route path="analytics" element={<AdminAnalytics />} />
+        <Route path="settings" element={<AdminSettings />} />
+      </Route>
+
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </BrowserRouter>
 );
 
 export default App;

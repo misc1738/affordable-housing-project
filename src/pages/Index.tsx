@@ -1,309 +1,123 @@
-
-import SearchHero from "@/components/SearchHero";
-import AffordabilityCalculator from "@/components/AffordabilityCalculator";
-import PropertyCard from "@/components/PropertyCard";
-import Navbar from "@/components/Navbar";
-import PropertyFilters from "@/components/PropertyFilters";
-import ApplicationTracker from "@/components/ApplicationTracker";
-import HousingResources from "@/components/HousingResources";
-import MortgageCalculator from "@/components/MortgageCalculator";
-import EligibilityChecker from "@/components/EligibilityChecker";
-import PropertyMap from "@/components/PropertyMap";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PropertyFiltersState } from "@/components/PropertyFilters";
-import { useState } from "react";
-
-// Sample properties data with Kenyan context
-const properties = [
-  {
-    id: 1,
-    title: "Modern Apartment in Kilimani",
-    address: "Kirichwa Road, Kilimani, Nairobi",
-    price: 75000,
-    bedrooms: 2,
-    type: "Apartment",
-    imageUrl: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2",
-  },
-  {
-    id: 2,
-    title: "Cozy Studio in Westlands",
-    address: "Waiyaki Way, Westlands, Nairobi",
-    price: 45000,
-    bedrooms: 1,
-    type: "Studio",
-    imageUrl: "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
-  },
-  {
-    id: 3,
-    title: "Family Home in Karen",
-    address: "Karen Road, Karen, Nairobi",
-    price: 120000,
-    bedrooms: 3,
-    type: "House",
-    imageUrl: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-  },
-  {
-    id: 4,
-    title: "Spacious Townhouse in Lavington",
-    address: "James Gichuru Road, Lavington, Nairobi",
-    price: 95000,
-    bedrooms: 3,
-    type: "Townhouse",
-    imageUrl: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750",
-  },
-  {
-    id: 5,
-    title: "Elegant Apartment in Riverside",
-    address: "Riverside Drive, Nairobi",
-    price: 85000,
-    bedrooms: 2,
-    type: "Apartment",
-    imageUrl: "https://images.unsplash.com/photo-1493809842364-78817add7ffb",
-  },
-  {
-    id: 6,
-    title: "Budget Studio in Ngara",
-    address: "Ngara Road, Ngara, Nairobi",
-    price: 25000,
-    bedrooms: 1,
-    type: "Studio",
-    imageUrl: "https://images.unsplash.com/photo-1487700160041-babef9c3cb55",
-  },
-];
-
-// Property locations for map
-const propertyLocations = [
-  { id: 1, title: "Modern Apartment in Kilimani", lat: -1.2921, lng: 36.8219, price: 75000 },
-  { id: 2, title: "Cozy Studio in Westlands", lat: -1.2673, lng: 36.8061, price: 45000 },
-  { id: 3, title: "Family Home in Karen", lat: -1.3184, lng: 36.7111, price: 120000 },
-  { id: 4, title: "Spacious Townhouse in Lavington", lat: -1.2773, lng: 36.7752, price: 95000 },
-  { id: 5, title: "Elegant Apartment in Riverside", lat: -1.2740, lng: 36.8058, price: 85000 },
-  { id: 6, title: "Budget Studio in Ngara", lat: -1.2762, lng: 36.8315, price: 25000 },
-];
-
-// Sample application steps
-const applicationSteps = [
-  {
-    id: 1,
-    title: "Application Submitted",
-    description: "Your application has been received and is being processed.",
-    status: "completed" as const,
-    date: "May 1, 2023",
-  },
-  {
-    id: 2,
-    title: "Background Check",
-    description: "We are reviewing your background and credit information.",
-    status: "current" as const,
-    date: "In progress",
-  },
-  {
-    id: 3,
-    title: "Landlord Approval",
-    description: "Your application will be reviewed by the property owner.",
-    status: "upcoming" as const,
-  },
-  {
-    id: 4,
-    title: "Final Approval",
-    description: "Final decision and lease preparation.",
-    status: "upcoming" as const,
-  },
-];
+import FadeIn from "@/components/animations/FadeIn";
+import { ArrowRight } from "lucide-react";
+import Hero from "@/components/home/Hero";
+import PropertySlider from "@/components/home/PropertySlider";
+import { Link } from "react-router-dom";
+import JoinButton from "@/components/ui/JoinButton";
+import { motion } from "framer-motion";
+import TeamSection from "@/components/home/TeamSection";
 
 const Index = () => {
-  const navigate = useNavigate();
-  const [selectedPropertyId, setSelectedPropertyId] = useState<number | null>(null);
-  
-  // Apply filters handler
-  const handleApplyFilters = (filters: PropertyFiltersState) => {
-    // Create URL parameters based on filters
-    const params = new URLSearchParams();
-    
-    if (filters.priceRange !== "1000-2000") params.set("price", filters.priceRange);
-    if (filters.bedrooms !== "any") params.set("bedrooms", filters.bedrooms);
-    if (filters.propertyType !== "any") params.set("type", filters.propertyType);
-    if (filters.eligibility !== "any") params.set("eligibility", filters.eligibility);
-    if (filters.incomeType !== "all") params.set("income", filters.incomeType);
-    
-    // Navigate to properties page with filters
-    navigate({
-      pathname: "/properties",
-      search: params.toString()
-    });
-  };
-  
-  // Handle marker click on map
-  const handleMarkerClick = (id: number) => {
-    setSelectedPropertyId(id);
-    // Highlight the property card (could be enhanced with scroll-to behavior)
-    const propertyCard = document.getElementById(`property-card-${id}`);
-    if (propertyCard) {
-      propertyCard.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-housing-50">
-      <Navbar />
-      
-      <div className="pt-16"> {/* Add padding top to account for fixed navbar */}
-        <SearchHero />
-      </div>
-      
-      <section className="container mx-auto px-4 py-12">
-        <div className="mb-8">
-          <PropertyFilters onApplyFilters={handleApplyFilters} />
-        </div>
-        
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-housing-800 mb-4">
-            Featured Properties in Nairobi
-          </h2>
-          <p className="text-housing-600 max-w-2xl mx-auto">
-            Discover our handpicked selection of affordable properties in Kenya's capital
-          </p>
-        </div>
+    <div className="flex flex-col min-h-screen bg-background">
+      <Hero />
 
-        <Tabs defaultValue="grid" className="mb-8">
-          <div className="flex justify-center">
-            <TabsList>
-              <TabsTrigger value="grid">Grid View</TabsTrigger>
-              <TabsTrigger value="map">Map View</TabsTrigger>
-            </TabsList>
-          </div>
-          <TabsContent value="grid" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {properties.map((property) => (
-                <div 
-                  id={`property-card-${property.id}`} 
-                  key={property.id}
-                  className={`transition-all ${property.id === selectedPropertyId ? 'ring-2 ring-housing-500 scale-[1.02]' : ''}`}
-                >
-                  <PropertyCard key={property.id} {...property} />
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-          <TabsContent value="map" className="mt-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-housing-200">
-              <PropertyMap
-                locations={propertyLocations}
-                height="500px"
-                zoom={11}
-                interactive={true}
-                onMarkerClick={(id) => {
-                  navigate(`/property/${id}`);
-                }}
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
-        
-        <div className="text-center mt-8">
-          <Button 
-            size="lg" 
-            onClick={() => navigate("/properties")}
-            className="bg-housing-800 hover:bg-housing-900"
-          >
-            View All Properties
-          </Button>
-        </div>
-      </section>
+      <div className="pb-32">
+        <PropertySlider />
 
-      <section className="container mx-auto px-4 py-16 bg-gradient-to-b from-transparent to-housing-100/50">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-housing-800 mb-4">
-            Plan Your Housing Finances
-          </h2>
-          <p className="text-housing-600 max-w-2xl mx-auto">
-            Use our tools to plan your budget and check your eligibility for Kenyan housing programs
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <MortgageCalculator />
-          <EligibilityChecker />
-        </div>
-      </section>
-
-      <section className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-housing-800 mb-4">
-            Track Your Applications
-          </h2>
-          <p className="text-housing-600 max-w-2xl mx-auto">
-            Stay updated on your housing applications in real-time
-          </p>
-        </div>
-        
-        <div className="max-w-3xl mx-auto">
-          <ApplicationTracker 
-            applicationId="APP-12345"
-            property="Modern Apartment - Kirichwa Road, Kilimani, Nairobi"
-            steps={applicationSteps}
-          />
-          <div className="text-center mt-8">
-            <Button onClick={() => navigate('/applications')}>
-              View All Applications
-            </Button>
-          </div>
-        </div>
-      </section>
-      
-      <section className="container mx-auto px-4 py-16 bg-gradient-to-b from-transparent to-housing-100/50">
-        <HousingResources />
-      </section>
-
-      <footer className="bg-housing-800 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h3 className="font-display text-xl font-bold mb-4">Affordable Abode</h3>
-              <p className="text-housing-300 text-sm">
-                Connecting Kenyans with affordable housing options tailored to their needs and budget.
+        {/* Parallax Luxury Section */}
+        <section className="relative h-[60vh] overflow-hidden flex items-center justify-center bg-fixed bg-center bg-cover" style={{ backgroundImage: "url('/images/hero_luxury_nairobi.png')" }}>
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative z-10 text-center px-4">
+            <FadeIn>
+              <h2 className="text-4xl md:text-6xl font-display font-bold text-white mb-6">
+                <span className="text-gold">Experience</span> True Luxury
+              </h2>
+              <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8 font-light">
+                Elevate your lifestyle with our exclusive collection of premium properties.
               </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-3 text-white/90">Quick Links</h4>
-              <ul className="space-y-2 text-sm text-housing-300">
-                <li><Link to="/" className="hover:text-white transition-colors">Home</Link></li>
-                <li><Link to="/properties" className="hover:text-white transition-colors">Search Properties</Link></li>
-                <li><Link to="/apply" className="hover:text-white transition-colors">Apply for Housing</Link></li>
-                <li><Link to="/resources" className="hover:text-white transition-colors">Resources</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-3 text-white/90">Resources</h4>
-              <ul className="space-y-2 text-sm text-housing-300">
-                <li><Link to="/resources" className="hover:text-white transition-colors">Housing Programs</Link></li>
-                <li><Link to="/resources" className="hover:text-white transition-colors">Tenant Rights</Link></li>
-                <li><Link to="/resources" className="hover:text-white transition-colors">Financial Assistance</Link></li>
-                <li><Link to="/resources" className="hover:text-white transition-colors">FAQ</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-3 text-white/90">Contact Us</h4>
-              <ul className="space-y-2 text-sm text-housing-300">
-                <li>support@affordableabode.co.ke</li>
-                <li>+254 712 345 678</li>
-                <li>Mon-Fri: 9am - 5pm EAT</li>
-              </ul>
+              <Link to="/properties">
+                <Button size="lg" className="rounded-full bg-gold text-black hover:bg-white/90 border-none px-8 py-6 text-lg font-semibold transition-all hover:scale-105">
+                  Explore Collection
+                </Button>
+              </Link>
+            </FadeIn>
+          </div>
+        </section>
+
+        {/* Mission Section */}
+        <section className="py-32 bg-secondary/5 relative overflow-hidden">
+          <div className="container px-4">
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              <FadeIn direction="right">
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-gold/20 rounded-[2.5rem] blur-2xl" />
+                  <img
+                    src="/images/mission_interior.png"
+                    alt="Luxury Interior"
+                    className="relative rounded-[2rem] shadow-2xl w-full object-cover h-[600px]"
+                  />
+                  <div className="absolute -bottom-10 -left-10 bg-white p-8 rounded-[2rem] shadow-xl max-w-xs hidden md:block border border-gold/20">
+                    <p className="font-display text-4xl font-bold text-gold mb-2">100+</p>
+                    <p className="text-muted-foreground">Premium properties sold in Nairobi's most exclusive neighborhoods.</p>
+                  </div>
+                </div>
+              </FadeIn>
+
+              <FadeIn direction="left">
+                <h2 className="text-4xl md:text-5xl font-display font-bold mb-8 leading-tight">
+                  Redefining <span className="text-gold">Modern Living</span> in Nairobi
+                </h2>
+                <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+                  At Affordable Abode, we believe luxury shouldn't be out of reach. We curate exceptional properties that blend sophisticated design with practical living, ensuring you find a home that reflects your success.
+                </p>
+
+                <ul className="space-y-6 mb-10">
+                  {[
+                    "Exclusive access to off-market listings",
+                    "Premium locations in Karen, Muthaiga & Runda",
+                    "Smart home integration & modern amenities",
+                    "Dedicated concierge support for buyers"
+                  ].map((item, index) => (
+                    <motion.li
+                      key={index}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="flex items-center gap-4 text-lg"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-3 h-3 rounded-full bg-gold" />
+                      </div>
+                      {item}
+                    </motion.li>
+                  ))}
+                </ul>
+
+                <Link to="/about">
+                  <Button variant="outline" size="lg" className="rounded-full border-gold/50 text-yellow-600 hover:bg-gold hover:text-black px-8">
+                    Learn More About Us
+                  </Button>
+                </Link>
+              </FadeIn>
             </div>
           </div>
-          
-          <div className="border-t border-housing-700 pt-8 text-center">
-            <p className="text-housing-400 text-sm">
-              © {new Date().getFullYear()} Affordable Abode Kenya. All rights reserved.
-            </p>
+        </section>
+
+        {/* Team Section */}
+        {/* <TeamSection /> */}
+
+        {/* CTA Section */}
+        <section className="py-32 bg-background relative overflow-hidden">
+          <div className="container px-4 text-center relative z-10">
+            <FadeIn>
+              <h2 className="text-4xl md:text-6xl font-display font-bold mb-6">Ready to Find Your Sanctuary?</h2>
+              <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+                Let us guide you to the home you've always dreamed of.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button size="lg" className="rounded-full px-10 h-14 text-lg bg-primary hover:bg-primary/90 text-white shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
+                  Start Your Search
+                </Button>
+                <Button size="lg" variant="outline" className="rounded-full px-10 h-14 text-lg border-2 hover:bg-secondary/50">
+                  Contact an Agent
+                </Button>
+              </div>
+            </FadeIn>
           </div>
-        </div>
-      </footer>
+        </section>
+      </div>
     </div>
   );
 };
