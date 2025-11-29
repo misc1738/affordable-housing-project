@@ -107,12 +107,16 @@ const Index = () => {
                 Let us guide you to the home you've always dreamed of.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button size="lg" className="rounded-full px-10 h-14 text-lg bg-primary hover:bg-primary/90 text-white shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
-                  Start Your Search
-                </Button>
-                <Button size="lg" variant="outline" className="rounded-full px-10 h-14 text-lg border-2 hover:bg-secondary/50">
-                  Contact an Agent
-                </Button>
+                <Link to="/properties">
+                  <Button size="lg" className="rounded-full px-10 h-14 text-lg bg-primary hover:bg-primary/90 text-white shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all">
+                    Start Your Search
+                  </Button>
+                </Link>
+                <a href="tel:+254702005992">
+                  <Button size="lg" variant="outline" className="rounded-full px-10 h-14 text-lg border-2 hover:bg-secondary/50">
+                    Contact an Agent
+                  </Button>
+                </a>
               </div>
             </FadeIn>
           </div>

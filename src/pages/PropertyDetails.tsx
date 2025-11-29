@@ -1,14 +1,14 @@
 
 import { useState } from "react";
-import { 
-  ArrowLeft, 
-  BedDouble, 
-  Home, 
-  MapPin, 
-  Maximize2, 
-  Phone, 
-  Share2, 
-  SunMedium, 
+import {
+  ArrowLeft,
+  BedDouble,
+  Home,
+  MapPin,
+  Maximize2,
+  Phone,
+  Share2,
+  SunMedium,
   LandPlot,
   Calendar
 } from "lucide-react";
@@ -23,13 +23,15 @@ import { toast } from "@/components/ui/use-toast";
 import Navbar from "@/components/Navbar";
 import PropertyMap from "@/components/PropertyMap";
 import VerificationBadge from "@/components/VerificationBadge";
+import WeatherWidget from "@/components/WeatherWidget";
+import PdfGenerator from "@/components/PdfGenerator";
 
 const PropertyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [activeImage, setActiveImage] = useState(0);
   const [isViewingDialogOpen, setIsViewingDialogOpen] = useState(false);
-  
+
   // Mock property data (would typically come from API)
   const property = {
     id: 1,
@@ -93,11 +95,11 @@ const PropertyDetails = () => {
     });
     setIsViewingDialogOpen(false);
   };
-  
+
   return (
     <div className="min-h-screen bg-housing-50">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 pt-20 pb-16">
         <div className="mb-6">
           <Link to="/properties" className="flex items-center text-housing-600 hover:text-housing-800 transition-colors">
@@ -105,7 +107,7 @@ const PropertyDetails = () => {
             Back to listings
           </Link>
         </div>
-        
+
         {/* Property Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
@@ -125,12 +127,12 @@ const PropertyDetails = () => {
               </Button>
             </div>
           </div>
-          
+
           <div className="flex items-center text-housing-600 mb-4">
             <MapPin className="h-4 w-4 mr-1" />
             <span>{property.address}</span>
           </div>
-          
+
           <div className="flex flex-wrap gap-4">
             <Badge className="bg-housing-100 text-housing-800 hover:bg-housing-200 px-3 py-1">
               KSh {property.price.toLocaleString()} per month
@@ -153,28 +155,27 @@ const PropertyDetails = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Property Images */}
         <div className="mb-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
             <div className="md:col-span-8 h-[400px] overflow-hidden rounded-lg">
-              <img 
-                src={property.images[activeImage]} 
+              <img
+                src={property.images[activeImage]}
                 alt={`${property.title} - Main Image`}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="md:col-span-4 grid grid-cols-2 md:grid-cols-1 gap-2">
               {property.images.slice(0, 3).map((image, index) => (
-                <div 
+                <div
                   key={index}
-                  className={`h-32 overflow-hidden rounded-lg cursor-pointer ${
-                    activeImage === index ? "ring-2 ring-housing-800" : ""
-                  }`}
+                  className={`h-32 overflow-hidden rounded-lg cursor-pointer ${activeImage === index ? "ring-2 ring-housing-800" : ""
+                    }`}
                   onClick={() => setActiveImage(index)}
                 >
-                  <img 
-                    src={image} 
+                  <img
+                    src={image}
                     alt={`${property.title} - Image ${index + 1}`}
                     className="w-full h-full object-cover"
                   />
@@ -183,7 +184,7 @@ const PropertyDetails = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Property Details Tabs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
@@ -193,13 +194,13 @@ const PropertyDetails = () => {
                 <TabsTrigger value="amenities" className="flex-1">Amenities</TabsTrigger>
                 <TabsTrigger value="location" className="flex-1">Location</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="overview" className="bg-white rounded-lg p-6 shadow-sm border border-housing-200">
                 <h3 className="text-xl font-semibold text-housing-800 mb-4">Property Description</h3>
                 <p className="text-housing-600 leading-relaxed mb-6">
                   {property.description}
                 </p>
-                
+
                 <h3 className="text-xl font-semibold text-housing-800 mb-4">Property Details</h3>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div>
@@ -224,7 +225,7 @@ const PropertyDetails = () => {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="amenities" className="bg-white rounded-lg p-6 shadow-sm border border-housing-200">
                 <h3 className="text-xl font-semibold text-housing-800 mb-4">Amenities</h3>
                 <div className="grid grid-cols-2 gap-y-4">
@@ -236,7 +237,7 @@ const PropertyDetails = () => {
                   ))}
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="location" className="bg-white rounded-lg p-6 shadow-sm border border-housing-200">
                 <h3 className="text-xl font-semibold text-housing-800 mb-4">Location</h3>
                 <div className="mb-6 h-[300px] rounded-lg">
@@ -252,7 +253,7 @@ const PropertyDetails = () => {
                     zoom={15}
                   />
                 </div>
-                
+
                 <h4 className="font-medium text-housing-800 mb-3">Nearby Places</h4>
                 <ul className="space-y-2">
                   {property.location.nearby.map((place, index) => (
@@ -266,12 +267,12 @@ const PropertyDetails = () => {
               </TabsContent>
             </Tabs>
           </div>
-          
+
           {/* Contact Sidebar */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-lg p-6 shadow-sm border border-housing-200 sticky top-24">
               <h3 className="text-xl font-semibold text-housing-800 mb-4">Contact Property Manager</h3>
-              
+
               <div className="mb-6">
                 <p className="text-housing-600 text-sm">Listed by</p>
                 <p className="font-medium text-housing-800">{property.landlord.name}</p>
@@ -286,22 +287,42 @@ const PropertyDetails = () => {
                   <p>Typical response: {property.landlord.responseTime}</p>
                 </div>
               </div>
-              
-              <Button 
+
+              <Button
                 className="w-full bg-housing-800 hover:bg-housing-900 mb-3"
                 onClick={handleApplyNow}
               >
                 Apply Now
               </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full border-housing-300 text-housing-700 hover:bg-housing-50"
+
+              <Button
+                variant="outline"
+                className="w-full border-housing-300 text-housing-700 hover:bg-housing-50 mb-3"
                 onClick={handleScheduleViewing}
               >
                 <Calendar className="w-4 h-4 mr-2" />
                 Schedule Viewing
               </Button>
+
+              <PdfGenerator
+                property={{
+                  id: property.id,
+                  title: property.title,
+                  location: property.address,
+                  price: `KES ${property.price.toLocaleString()}`,
+                  image: property.images[0],
+                  beds: property.bedrooms,
+                  baths: property.bathrooms,
+                  sqft: `${property.size} sq.m`,
+                  type: property.type
+                }}
+                buttonVariant="outline"
+                buttonSize="default"
+              />
+
+              <div className="mt-6">
+                <WeatherWidget location={property.address} />
+              </div>
             </div>
           </div>
         </div>

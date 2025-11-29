@@ -2,82 +2,15 @@ import { useState } from "react";
 import PropertyTable from "@/components/admin/PropertyTable";
 import { LuxuryProperty } from "@/components/LuxuryPropertyCard";
 import MetricCard from "@/components/admin/MetricCard";
-import { Home, TrendingUp, DollarSign, Eye } from "lucide-react";
-
-// Import properties from the main properties data
-const initialProperties: LuxuryProperty[] = [
-    {
-        id: 1,
-        title: "The Glass House",
-        location: "Karen, Nairobi",
-        price: 125000000,
-        image: "/images/luxury-house-1.png",
-        beds: 5,
-        baths: 6,
-        sqft: "6,500",
-        type: "Villa"
-    },
-    {
-        id: 2,
-        title: "Modern Oasis",
-        location: "Muthaiga, Nairobi",
-        price: 89000000,
-        image: "/images/luxury-house-2.png",
-        beds: 4,
-        baths: 5,
-        sqft: "4,200",
-        type: "Mansion"
-    },
-    {
-        id: 3,
-        title: "Hilltop Estate",
-        location: "Runda, Nairobi",
-        price: 250000000,
-        image: "/images/luxury-house-3.png",
-        beds: 8,
-        baths: 10,
-        sqft: "12,000",
-        type: "Estate"
-    },
-    {
-        id: 4,
-        title: "Skyline Penthouse",
-        location: "Westlands, Nairobi",
-        price: 180000000,
-        image: "/images/westlands_penthouse.png",
-        beds: 3,
-        baths: 4,
-        sqft: "4,500",
-        type: "Penthouse"
-    },
-    {
-        id: 5,
-        title: "Swahili Villa",
-        location: "Lamu, Coast",
-        price: 95000000,
-        image: "/images/coastal_villa.png",
-        beds: 6,
-        baths: 7,
-        sqft: "5,800",
-        type: "Villa"
-    },
-    {
-        id: 6,
-        title: "Riverside Retreat",
-        location: "Riverside, Nairobi",
-        price: 65000000,
-        image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80",
-        beds: 3,
-        baths: 3,
-        sqft: "3,200",
-        type: "Apartment"
-    }
-];
+import { Home, TrendingUp, DollarSign, Eye, FileDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { generatePdf } from "@/lib/api-services";
+import PROPERTIES, { PropertyWithStatus } from "@/data/properties";
 
 const AdminProperties = () => {
-    const [properties, setProperties] = useState<LuxuryProperty[]>(initialProperties);
+    const [properties, setProperties] = useState<PropertyWithStatus[]>(PROPERTIES);
 
-    const handleEdit = (property: LuxuryProperty) => {
+    const handleEdit = (property: PropertyWithStatus) => {
         console.log("Edit property:", property);
         // TODO: Open edit modal
     };
@@ -88,15 +21,83 @@ const AdminProperties = () => {
         }
     };
 
+    const handleStatusChange = (id: number, status: PropertyStatus) => {
+        setProperties(properties.map(p =>
+            p.id === id ? { ...p, status } : p
+        ));
+    };
+
     const totalValue = properties.reduce((sum, p) => sum + (typeof p.price === 'number' ? p.price : 0), 0);
-    const availableCount = properties.filter((_, i) => i % 3 === 0).length;
+    const availableCount = properties.filter(p => p.status === "Available").length;
+    const totalViews = properties.reduce((sum, p) => sum + (p.views || 0), 0);
 
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Property Management</h1>
-                <p className="text-gray-600">Manage all your luxury properties from here.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Property Management</h1>
+                    <p className="text-gray-600">Manage all your luxury properties from here.</p>
+                </div>
+                <Button
+                    onClick={async () => {
+                        const htmlContent = `
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <style>
+                                    body { font-family: Arial; padding: 40px; }
+                                    h1 { color: #D4AF37; }
+                                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                                    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                                    th { background: #f5f5f5; }
+                                </style>
+                            </head>
+                            <body>
+                                <h1>Property Portfolio Report</h1>
+                                <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                                <p><strong>Total Properties:</strong> ${properties.length}</p>
+                                <p><strong>Total Value:</strong> KES ${(totalValue / 1000000).toFixed(1)}M</p>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Property</th>
+                                            <th>Location</th>
+                                            <th>Type</th>
+                                            <th>Price</th>
+                                            <th>Beds/Baths</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${properties.map(p => `
+                                            <tr>
+                                                <td>${p.title}</td>
+                                                <td>${p.location}</td>
+                                                <td>${p.type}</td>
+                                                <td>KES ${typeof p.price === 'number' ? (p.price / 1000000).toFixed(1) + 'M' : p.price}</td>
+                                                <td>${p.beds}/${p.baths}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </body>
+                            </html>
+                        `;
+                        const pdf = await generatePdf(htmlContent);
+                        if (pdf) {
+                            const url = URL.createObjectURL(pdf);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = `Property-Portfolio-${new Date().toISOString().split('T')[0]}.pdf`;
+                            link.click();
+                            URL.revokeObjectURL(url);
+                        }
+                    }}
+                    className="gap-2"
+                >
+                    <FileDown className="w-4 h-4" />
+                    Export to PDF
+                </Button>
             </div>
 
             {/* Quick Stats */}
@@ -121,7 +122,7 @@ const AdminProperties = () => {
                 />
                 <MetricCard
                     title="Total Views"
-                    value="1,234"
+                    value={totalViews.toLocaleString()}
                     icon={Eye}
                     color="orange"
                 />
@@ -132,6 +133,7 @@ const AdminProperties = () => {
                 properties={properties}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onStatusChange={handleStatusChange}
             />
         </div>
     );

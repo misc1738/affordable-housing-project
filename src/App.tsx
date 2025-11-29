@@ -29,6 +29,14 @@ import AdminProperties from "./pages/admin/AdminProperties";
 import AdminBookings from "./pages/admin/AdminBookings";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminLogin from "./pages/AdminLogin";
+import ProtectedRoute from "./components/ProtectedRoute";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Cookies from "./pages/Cookies";
 
 const queryClient = new QueryClient();
 
@@ -53,10 +61,23 @@ const App = () => (
         <Route path="/news" element={<News />} />
         <Route path="/quiz" element={<PreferenceQuiz />} />
         <Route path="/map-explorer" element={<MapExplorer />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/faq" element={<FAQ />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/cookies" element={<Cookies />} />
       </Route>
 
-      {/* Admin Routes */}
-      <Route path="/admin" element={<AdminLayout />}>
+      {/* Admin Login */}
+      <Route path="/admin/login" element={<AdminLogin />} />
+
+      {/* Admin Routes - Protected */}
+      <Route path="/admin" element={
+        <ProtectedRoute requireAdmin>
+          <AdminLayout />
+        </ProtectedRoute>
+      }>
         <Route index element={<AdminDashboard />} />
         <Route path="properties" element={<AdminProperties />} />
         <Route path="bookings" element={<AdminBookings />} />

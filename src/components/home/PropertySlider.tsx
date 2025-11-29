@@ -4,59 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FadeIn from "@/components/animations/FadeIn";
 import LuxuryPropertyCard from "@/components/LuxuryPropertyCard";
-
-const properties = [
-    {
-        id: 1,
-        title: "The Glass House",
-        location: "Karen, Nairobi",
-        price: "KES 125,000,000",
-        image: "/images/luxury-house-1.png",
-        beds: 5,
-        baths: 6,
-        sqft: "6,500"
-    },
-    {
-        id: 2,
-        title: "Modern Oasis",
-        location: "Muthaiga, Nairobi",
-        price: "KES 89,000,000",
-        image: "/images/luxury-house-2.png",
-        beds: 4,
-        baths: 5,
-        sqft: "4,200"
-    },
-    {
-        id: 3,
-        title: "Hilltop Estate",
-        location: "Runda, Nairobi",
-        price: "KES 250,000,000",
-        image: "/images/luxury-house-3.png",
-        beds: 8,
-        baths: 10,
-        sqft: "12,000"
-    },
-    {
-        id: 4,
-        title: "Skyline Penthouse",
-        location: "Westlands, Nairobi",
-        price: "KES 180,000,000",
-        image: "/images/westlands_penthouse.png",
-        beds: 3,
-        baths: 4,
-        sqft: "4,500"
-    },
-    {
-        id: 5,
-        title: "Swahili Villa",
-        location: "Lamu, Coast",
-        price: "KES 95,000,000",
-        image: "/images/coastal_villa.png",
-        beds: 6,
-        baths: 7,
-        sqft: "5,800"
-    }
-];
+import { getFeaturedProperties } from "@/data/properties";
 
 const PropertySlider = () => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -65,7 +13,10 @@ const PropertySlider = () => {
         offset: ["start end", "end start"]
     });
 
-    const x = useTransform(scrollYProgress, [0, 1], ["0%", "-20%"]);
+    const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
+
+    // Get featured and available properties
+    const properties = getFeaturedProperties().filter(p => p.status === "Available");
 
     return (
         <section ref={containerRef} className="py-32 bg-background overflow-hidden">
@@ -83,7 +34,7 @@ const PropertySlider = () => {
                 </FadeIn>
             </div>
 
-            <motion.div style={{ x }} className="flex gap-8 px-4 md:px-20 w-max">
+            <motion.div style={{ y }} className="flex gap-8 px-4 md:px-20 w-max">
                 {properties?.map((property, index) => (
                     <LuxuryPropertyCard key={property.id} property={property} index={index} className="w-[400px] md:w-[600px]" />
                 ))}

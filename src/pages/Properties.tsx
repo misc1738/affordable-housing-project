@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
 import FadeIn from "@/components/animations/FadeIn";
 import BouncingText from "@/components/animations/BouncingText";
+import PROPERTIES, { getAvailableProperties } from "@/data/properties";
 import {
   Drawer,
   DrawerClose,
@@ -23,88 +24,13 @@ import {
 } from "@/components/ui/drawer";
 import { useMobile } from "@/hooks/use-mobile";
 
-const properties: LuxuryProperty[] = [
-  {
-    id: 1,
-    title: "The Glass House",
-    location: "Karen, Nairobi",
-    price: 125000000,
-    image: "/images/luxury-house-1.png",
-    beds: 5,
-    baths: 6,
-    sqft: "6,500",
-    type: "Villa"
-  },
-  {
-    id: 2,
-    title: "Modern Oasis",
-    location: "Muthaiga, Nairobi",
-    price: 89000000,
-    image: "/images/luxury-house-2.png",
-    beds: 4,
-    baths: 5,
-    sqft: "4,200",
-    type: "Mansion"
-  },
-  {
-    id: 3,
-    title: "Hilltop Estate",
-    location: "Runda, Nairobi",
-    price: 250000000,
-    image: "/images/luxury-house-3.png",
-    beds: 8,
-    baths: 10,
-    sqft: "12,000",
-    type: "Estate"
-  },
-  {
-    id: 4,
-    title: "Skyline Penthouse",
-    location: "Westlands, Nairobi",
-    price: 180000000,
-    image: "/images/westlands_penthouse.png",
-    beds: 3,
-    baths: 4,
-    sqft: "4,500",
-    type: "Penthouse"
-  },
-  {
-    id: 5,
-    title: "Swahili Villa",
-    location: "Lamu, Coast",
-    price: 95000000,
-    image: "/images/coastal_villa.png",
-    beds: 6,
-    baths: 7,
-    sqft: "5,800",
-    type: "Villa"
-  },
-  {
-    id: 6,
-    title: "Riverside Retreat",
-    location: "Riverside, Nairobi",
-    price: 65000000,
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80",
-    beds: 3,
-    baths: 3,
-    sqft: "3,200",
-    type: "Apartment"
-  }
-];
-
-const propertyLocations = [
-  { id: 1, title: "The Glass House", lat: -1.3184, lng: 36.7111, price: 125000000 },
-  { id: 2, title: "Modern Oasis", lat: -1.2673, lng: 36.8061, price: 89000000 },
-  { id: 3, title: "Hilltop Estate", lat: -1.2184, lng: 36.8111, price: 250000000 },
-  { id: 4, title: "Skyline Penthouse", lat: -1.2650, lng: 36.8000, price: 180000000 },
-  { id: 5, title: "Swahili Villa", lat: -2.2696, lng: 40.9006, price: 95000000 },
-  { id: 6, title: "Riverside Retreat", lat: -1.2740, lng: 36.8058, price: 65000000 },
-];
-
-const fetchProperties = async (filters?: Partial<PropertyFiltersState>) => {
+// Fetch properties - using shared data source
+const fetchProperties = async (filters?: Partial<PropertyFiltersState>): Promise<LuxuryProperty[]> => {
+  // In production, this would be an API call
+  // For now, return available properties from shared data, applying filters
   return new Promise((resolve) => {
     setTimeout(() => {
-      let filteredProperties = [...properties];
+      let filteredProperties = getAvailableProperties();
 
       if (filters) {
         if (filters.priceRange) {
@@ -149,9 +75,14 @@ const fetchProperties = async (filters?: Partial<PropertyFiltersState>) => {
 };
 
 const getFilteredLocations = (filteredProperties: any[]) => {
-  return propertyLocations.filter(location =>
-    filteredProperties.some(property => property.id === location.id)
-  );
+  // Generate location data from properties for map view
+  return filteredProperties.map(property => ({
+    id: property.id,
+    title: property.title,
+    lat: -1.2921 + (Math.random() - 0.5) * 0.1, // Mock coordinates around Nairobi
+    lng: 36.8219 + (Math.random() - 0.5) * 0.1,
+    price: typeof property.price === 'number' ? property.price : 0
+  }));
 };
 
 const Properties = () => {
@@ -180,7 +111,7 @@ const Properties = () => {
   const { data: propertiesData, isLoading, error, refetch } = useQuery({
     queryKey: ["properties", filters],
     queryFn: () => fetchProperties(filters),
-    initialData: properties
+    initialData: getAvailableProperties()
   });
 
   const handleApplyFilters = (newFilters: PropertyFiltersState) => {

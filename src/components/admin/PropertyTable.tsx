@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { LuxuryProperty } from "@/components/LuxuryPropertyCard";
+import { PropertyWithStatus, PropertyStatus } from "@/data/properties";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface PropertyTableProps {
-    properties: LuxuryProperty[];
-    onEdit: (property: LuxuryProperty) => void;
+    properties: PropertyWithStatus[];
+    onEdit: (property: PropertyWithStatus) => void;
     onDelete: (id: number) => void;
+    onStatusChange?: (id: number, status: PropertyStatus) => void;
 }
 
-const PropertyTable = ({ properties, onEdit, onDelete }: PropertyTableProps) => {
+const PropertyTable = ({ properties, onEdit, onDelete, onStatusChange }: PropertyTableProps) => {
     const [searchTerm, setSearchTerm] = useState("");
 
     const filteredProperties = properties.filter(property =>
@@ -18,11 +20,7 @@ const PropertyTable = ({ properties, onEdit, onDelete }: PropertyTableProps) => 
         property.location.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const getStatusColor = (id: number) => {
-        // Mock status logic - in real app this would come from property data
-        const statuses = ["Available", "Pending", "Sold"];
-        const status = statuses[id % 3];
-
+    const getStatusColor = (status: PropertyStatus) => {
         switch (status) {
             case "Available":
                 return "bg-green-100 text-green-800";
@@ -30,14 +28,11 @@ const PropertyTable = ({ properties, onEdit, onDelete }: PropertyTableProps) => 
                 return "bg-yellow-100 text-yellow-800";
             case "Sold":
                 return "bg-gray-100 text-gray-800";
+            case "Off-Market":
+                return "bg-red-100 text-red-800";
             default:
                 return "bg-blue-100 text-blue-800";
         }
-    };
-
-    const getStatus = (id: number) => {
-        const statuses = ["Available", "Pending", "Sold"];
-        return statuses[id % 3];
     };
 
     return (
@@ -105,9 +100,16 @@ const PropertyTable = ({ properties, onEdit, onDelete }: PropertyTableProps) => 
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(property.id)}`}>
-                                            {getStatus(property.id)}
-                                        </span>
+                                        <select
+                                            value={property.status}
+                                            onChange={(e) => onStatusChange?.(property.id, e.target.value as PropertyStatus)}
+                                            className={`px-3 py-1 rounded-full text-xs font-medium border-0 cursor-pointer ${getStatusColor(property.status)}`}
+                                        >
+                                            <option value="Available">Available</option>
+                                            <option value="Pending">Pending</option>
+                                            <option value="Sold">Sold</option>
+                                            <option value="Off-Market">Off-Market</option>
+                                        </select>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-end gap-2">
