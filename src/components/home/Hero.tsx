@@ -11,7 +11,7 @@ const Hero = () => {
                     initial={{ scale: 1, opacity: 0 }}
                     animate={{ scale: [1, 1.1], opacity: 1 }}
                     transition={{
-                        scale: { duration: 20, repeat: Infinity, repeatType: "reverse", ease: "linear" },
+                        scale: { duration: 10, repeat: Infinity, repeatType: "reverse", ease: "linear" },
                         opacity: { duration: 1.5, ease: "easeOut" }
                     }}
                     src="/images/hero_luxury_nairobi.png"

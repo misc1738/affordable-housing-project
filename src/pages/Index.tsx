@@ -48,10 +48,7 @@ const Index = () => {
                     alt="Luxury Interior"
                     className="relative rounded-[2rem] shadow-2xl w-full object-cover h-[600px]"
                   />
-                  <div className="absolute -bottom-10 -left-10 bg-white p-8 rounded-[2rem] shadow-xl max-w-xs hidden md:block border border-gold/20">
-                    <p className="font-display text-4xl font-bold text-gold mb-2">100+</p>
-                    <p className="text-muted-foreground">Premium properties sold in Nairobi's most exclusive neighborhoods.</p>
-                  </div>
+
                 </div>
               </FadeIn>
 
