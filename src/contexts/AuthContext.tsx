@@ -10,6 +10,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     signIn: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string, name: string) => Promise<void>;
     signOut: () => Promise<void>;
     isAdmin: boolean;
 }
@@ -63,6 +64,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const signUp = async (email: string, password: string, name: string) => {
+        try {
+            const { auth } = await import("@/config/firebase");
+            const { createUserWithEmailAndPassword, updateProfile } = await import("firebase/auth");
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            await updateProfile(userCredential.user, {
+                displayName: name
+            });
+        } catch (error: any) {
+            throw new Error(error.message || "Failed to sign up");
+        }
+    };
+
     const signOut = async () => {
         try {
             const { auth } = await import("@/config/firebase");
@@ -73,7 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, signIn, signOut, isAdmin }}>
+        <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, isAdmin }}>
             {children}
         </AuthContext.Provider>
     );

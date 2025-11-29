@@ -1,18 +1,19 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Mail, Lock, User, MapPin, Phone } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Mail, Lock, User, MapPin, Phone, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 
@@ -24,17 +25,37 @@ const SignUp = () => {
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { signUp } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Form validation and submission logic would go here
-    console.log("Form submitted", { email, password, name, phone, location });
+    setError("");
+    setLoading(true);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await signUp(email, password, name);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Failed to create account");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-housing-50">
       <Navbar />
-      
+
       <div className="container mx-auto px-4 py-20">
         <div className="max-w-md mx-auto">
           <Card className="border-housing-200 bg-white/90 backdrop-blur-sm">
@@ -46,8 +67,13 @@ const SignUp = () => {
                 Join Affordable Abode to find your ideal home in Kenya
               </CardDescription>
             </CardHeader>
-            
+
             <CardContent>
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
+                  {error}
+                </div>
+              )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
@@ -60,10 +86,11 @@ const SignUp = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
@@ -76,10 +103,11 @@ const SignUp = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <div className="relative">
@@ -92,10 +120,11 @@ const SignUp = () => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="location">City/County</Label>
                   <div className="relative">
@@ -107,10 +136,11 @@ const SignUp = () => {
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <div className="relative">
@@ -122,10 +152,11 @@ const SignUp = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
                   <div className="relative">
@@ -137,17 +168,19 @@ const SignUp = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="terms" 
+                  <Checkbox
+                    id="terms"
                     checked={agreeTerms}
                     onCheckedChange={(checked) => {
                       setAgreeTerms(checked as boolean);
                     }}
+                    disabled={loading}
                   />
                   <label
                     htmlFor="terms"
@@ -159,17 +192,24 @@ const SignUp = () => {
                     </Link>
                   </label>
                 </div>
-                
-                <Button 
-                  type="submit" 
+
+                <Button
+                  type="submit"
                   className="w-full bg-housing-800 hover:bg-housing-900"
-                  disabled={!agreeTerms}
+                  disabled={!agreeTerms || loading}
                 >
-                  Create Account
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
                 </Button>
               </form>
             </CardContent>
-            
+
             <CardFooter className="flex flex-col space-y-4">
               <div className="text-center text-sm text-housing-600">
                 Already have an account?{" "}
